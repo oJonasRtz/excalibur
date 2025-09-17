@@ -2,6 +2,9 @@ import * as ex from 'excalibur';
 import { checkVerticalCollision } from '../utils/collision';
 
 export class Paddle extends ex.Actor {
+	speed: number;
+	number: number;
+
 	constructor(x: number, y: number, player: number = 1) {
 		super({
 			x: x,
@@ -17,18 +20,7 @@ export class Paddle extends ex.Actor {
 
 	//Codigo que roda a cada frame
 	onPreUpdate(engine: ex.Engine, _delta: number): void {
-
-		/*
-			Calculo do movimento
-
-			lado direito anda com as setas
-			lado esquerdo anda com W e S
-		*/
-		const side: boolean = this.number % 2 === 0;
-		const up: boolean = engine.input.keyboard.isHeld(!side ? ex.Keys.W: ex.Keys.Up);
-		const down: boolean = engine.input.keyboard.isHeld(!side ? ex.Keys.S: ex.Keys.Down);
-		const dir: number = Number(down) - Number(up);
-		const moveSpeed = (dir * this.speed) * _delta;
+		const moveSpeed: number = this.getMoveSpeed(engine, _delta);
 
 		//colisao com as bordas
 		if (checkVerticalCollision(this.pos.y + moveSpeed, this.height, engine.drawHeight))
@@ -36,5 +28,18 @@ export class Paddle extends ex.Actor {
 
 		//Move a raquete
 		this.pos.y += moveSpeed;
+	}
+
+	//Utils
+	getMoveSpeed(engine: ex.Engine, _delta: number): number {
+		//KeyBindings
+		//left players: W (up) S (down)
+		//right players: Up (up) Down (down)
+		const side: boolean = this.number % 2 === 0;
+		const up: boolean = engine.input.keyboard.isHeld(!side ? ex.Keys.W: ex.Keys.Up);
+		const down: boolean = engine.input.keyboard.isHeld(!side ? ex.Keys.S: ex.Keys.Down);
+		
+		const dir: number = Number(down) - Number(up);
+		return (dir * this.speed) * _delta;
 	}
 }
