@@ -1,6 +1,7 @@
 import * as ex from 'excalibur';
 import { Paddle } from './paddle';
 import { gameState } from '../main';
+import { checkVerticalCollision } from '../utils/collision';
 
 export class Ball extends ex.Actor {
 	speed: number;
@@ -15,9 +16,11 @@ export class Ball extends ex.Actor {
 			color: ex.Color.White,
 			collisionType: ex.CollisionType.Passive
 		});
-		this.speed = .5;
-		const side: boolean = Math.random() < .5;
-		this.direction = side ? ex.Vector.Right.clone() : ex.Vector.Left.clone();
+		this.speed = .25;
+		const side: number = Math.random();
+		this.direction = new ex.Vector(0, 0);
+		this.direction.x = Number(side > .5) - Number(side < .5);
+		this.direction.y = Number(side > .5) - Number(side < .5);
 	}
 
 	//Executa apenas uma vez, quando o ator entra na cena
@@ -30,11 +33,16 @@ export class Ball extends ex.Actor {
 			console.log(col.other)
 			if (col.other.owner instanceof Paddle) {
 				this.direction.x = -this.direction.x;
-				if (this.speed < 1.5) this.speed += .2;
+				this.direction.y = this.getRandom();
+				if (this.speed < 1.5) this.speed += .1;
 			}
 		})
 	}
 
+	getRandom(): number {
+		const val: number = Math.random();
+		return (Number(val > .5) - Number(val < .5));
+	}
 	//Codigo que roda a cada frame
 	onPreUpdate(engine: ex.Engine, delta: number): void {
 
@@ -42,6 +50,10 @@ export class Ball extends ex.Actor {
 
 		const moveSpeedx: number = this.speed * this.direction.x * delta;
 		const moveSpeedy: number = this.speed * this.direction.y * delta;
+
+		if (checkVerticalCollision(this.pos.y + moveSpeedy, this.height, engine.drawHeight)) {
+			this.direction.y = -this.direction.y;
+		}
 
 		this.pos.x += moveSpeedx;
 		this.pos.y += moveSpeedy;
