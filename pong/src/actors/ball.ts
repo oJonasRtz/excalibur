@@ -34,6 +34,8 @@ export class Ball extends ex.Actor {
 			if (col.other.owner instanceof Paddle) {
 				this.direction.x = -this.direction.x;
 				this.direction.y = this.getRandom();
+
+				//speedup
 				if (this.speed < 1.5) this.speed += .1;
 			}
 		})
