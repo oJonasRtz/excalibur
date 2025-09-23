@@ -4,8 +4,9 @@ import { checkVerticalCollision } from '../utils/collision';
 export class Paddle extends ex.Actor {
 	speed: number;
 	number: number;
+	upMargin: number;
 
-	constructor(x: number, y: number, player: number = 1) {
+	constructor(x: number, y: number, player: number = 1, upMargin: number = 0) {
 		super({
 			x: x,
 			y: y,
@@ -14,6 +15,7 @@ export class Paddle extends ex.Actor {
 			color: ex.Color.White,
 			collisionType: ex.CollisionType.Fixed
 		});
+		this.upMargin = upMargin;
 		this.speed = 1;
 		this.number = player;
 	}
@@ -23,7 +25,7 @@ export class Paddle extends ex.Actor {
 		const moveSpeed: number = this.getMoveSpeed(engine, _delta);
 
 		//colisao com as bordas
-		if (checkVerticalCollision(this.pos.y + moveSpeed, this.height, engine.drawHeight))
+		if (checkVerticalCollision(this.pos.y + moveSpeed, this.height, engine.drawHeight, this.upMargin))
 			return;
 
 		//Move a raquete

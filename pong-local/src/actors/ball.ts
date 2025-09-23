@@ -15,7 +15,8 @@ export class Ball extends ex.Actor {
 	speed: number;
 	direction: ex.Vector;
 	start: boolean = false;
-	constructor(x: number, y: number) {
+	upMargin: number;
+	constructor(x: number, y: number, upMargin: number = 0) {
 		super({
 			x: x,
 			y: y,
@@ -24,11 +25,9 @@ export class Ball extends ex.Actor {
 			color: ex.Color.White,
 			collisionType: ex.CollisionType.Passive
 		});
+		this.upMargin = upMargin;
 		this.speed = .30;
-		// const side: number = Math.random();
 		this.direction = new ex.Vector(pos.x, pos.y);
-		// this.direction.x = Number(side > .5) - Number(side < .5);
-		// this.direction.y = Number(side > .5) - Number(side < .5);
 	}
 
 	//Executa apenas uma vez, quando o ator entra na cena
@@ -60,7 +59,7 @@ export class Ball extends ex.Actor {
 		const moveSpeedx: number = this.speed * this.direction.x * delta;
 		const moveSpeedy: number = this.speed * this.direction.y * delta;
 
-		if (checkVerticalCollision(this.pos.y + moveSpeedy, this.height, engine.drawHeight)) {
+		if (checkVerticalCollision(this.pos.y + moveSpeedy, this.height, engine.drawHeight, this.upMargin)) {
 			this.direction.y = -this.direction.y;
 		}
 

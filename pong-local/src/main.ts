@@ -3,6 +3,7 @@ import { Paddle } from './actors/paddle';
 import { Ball } from './actors/ball';
 import type { GameType, MatchStats } from './types';
 import { score } from './score';
+import { MidleLine } from './utils/midleLine';
 
 export const gameState: GameType = {
 	ballInGame: false,
@@ -17,6 +18,7 @@ class Pong {
 	maxScore: number = 7;
 	matchTime: string;
 	winner: string;
+	height: number = 50;
 	onMatchEnd?: (stats: MatchStats) => void;
 	timer: ex.Timer;
 	constructor(onMatchEnd?: (stats: MatchStats) => void) {
@@ -28,8 +30,8 @@ class Pong {
 		});
 
 		this.onMatchEnd = onMatchEnd;
-		this.drawPlayers();
 		this.drawUi();
+		this.drawPlayers();
 		this.startMatch = Date.now();
 		this.timer = new ex.Timer({
 			fcn: () => this.countTime(),
@@ -84,21 +86,24 @@ class Pong {
 			pos: ex.vec(this.engine.drawWidth / 2, textY),
 		})
 
+		this.height = this.timeLabel.pos.y + timerFont.size + 10;
+		const middleLine = new MidleLine(this.engine.drawWidth / 2, this.height, 5, this.engine.drawHeight - (textY + fontSize + 30));
+
+
 		const player1 = new ex.Label({
 			text: `${score.nameP1}`,
 			font: font,
 			color: ex.Color.White,
 			pos: ex.vec(this.engine.drawWidth * .2, textY),
-
 		})
 		const player2 = new ex.Label({
 			text: `${score.nameP2}`,
 			font: font,
 			color: ex.Color.White,
 			pos: ex.vec(this.engine.drawWidth * .8, textY),
-
 		})
 		
+		this.engine.add(middleLine);
 		this.engine.add(player1);
 		this.engine.add(player2);
 		this.engine.add(this.scoreLabel);
@@ -106,9 +111,9 @@ class Pong {
 	}
 
 	drawPlayers(): void{
-		const paddle1 = new Paddle(50, this.engine.drawHeight / 2);
-		const paddle2 = new Paddle(this.engine.drawWidth - 50, this.engine.drawHeight / 2, 2);
-		
+		const paddle1 = new Paddle(50, this.engine.drawHeight / 2, 1, this.height);
+		const paddle2 = new Paddle(this.engine.drawWidth - 50, this.engine.drawHeight / 2, 2, this.height);
+
 		this.engine.add(paddle1);
 		this.engine.add(paddle2);
 	}
@@ -116,7 +121,7 @@ class Pong {
 	ballReset():void {
 		if (gameState.ballInGame) return;
 
-		const ball = new Ball(this.engine.drawWidth / 2, this.engine.drawHeight / 2);
+		const ball = new Ball(this.engine.drawWidth / 2, this.engine.drawHeight / 2, this.height);
 		this.engine.add(ball);
 		gameState.ballInGame = true;
 		gameState.gameStarted = true;
