@@ -2,6 +2,14 @@ import * as ex from 'excalibur';
 import { Paddle } from './paddle';
 import { gameState } from '../main';
 import { checkVerticalCollision } from '../utils/collision';
+import { score } from '../score';
+import type { BallPosition } from '../types';
+
+const side: number = Math.random();
+let pos: BallPosition = {
+	x: Number(side > .5) - Number(side < .5),
+	y: Number(side > .5) - Number(side < .5)
+}
 
 export class Ball extends ex.Actor {
 	speed: number;
@@ -17,10 +25,10 @@ export class Ball extends ex.Actor {
 			collisionType: ex.CollisionType.Passive
 		});
 		this.speed = .25;
-		const side: number = Math.random();
-		this.direction = new ex.Vector(0, 0);
-		this.direction.x = Number(side > .5) - Number(side < .5);
-		this.direction.y = Number(side > .5) - Number(side < .5);
+		// const side: number = Math.random();
+		this.direction = new ex.Vector(pos.x, pos.y);
+		// this.direction.x = Number(side > .5) - Number(side < .5);
+		// this.direction.y = Number(side > .5) - Number(side < .5);
 	}
 
 	//Executa apenas uma vez, quando o ator entra na cena
@@ -30,13 +38,12 @@ export class Ball extends ex.Actor {
 		}, 1000); // 1000 ms = 1 segundo de delay
 
 		this.on('collisionstart', (col) => {
-			console.log(col.other)
 			if (col.other.owner instanceof Paddle) {
 				this.direction.x = -this.direction.x;
 				this.direction.y = this.getRandom();
 
 				//speedup
-				if (this.speed < 1.5) this.speed += .1;
+				if (this.speed < 1.5) this.speed += .02;
 			}
 		})
 	}
@@ -61,6 +68,14 @@ export class Ball extends ex.Actor {
 		this.pos.y += moveSpeedy;
 
 		if (this.pos.x < 0 || this.pos.x > engine.drawWidth) {
+			const right: number = Number(this.pos.x > engine.drawWidth);
+			const left: number = Number(this.pos.x < 0);
+
+			pos.x = right ? 1 : -1;
+			pos.y = (Math.random() > .5) ? 1 : -1;
+
+			score.P1 += right;
+			score.P2 += left;
 			gameState.ballInGame = !gameState.ballInGame;
 			this.kill();
 		}
