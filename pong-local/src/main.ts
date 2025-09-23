@@ -2,7 +2,7 @@ import * as ex from 'excalibur';
 import { Paddle } from './actors/paddle';
 import { Ball } from './actors/ball';
 import type { GameType, MatchStats } from './types';
-import { resetScores, score } from './score';
+import { score } from './score';
 
 export const gameState: GameType = {
 	ballInGame: false,
@@ -17,17 +17,27 @@ class Pong {
 	maxScore: number = 7;
 	matchTime: string;
 	winner: string;
-	constructor() {
+	onMatchEnd?: (stats: MatchStats) => void;
+	timer: ex.Timer;
+	constructor(onMatchEnd?: (stats: MatchStats) => void) {
 		this.engine = new ex.Engine({
-			width: 800,
-			height: 600,
-			displayMode: ex.DisplayMode.Fixed,
+			width: 1920,
+			height: 1080,
+			displayMode: ex.DisplayMode.FillScreen,
 			backgroundColor: ex.Color.Black
 		});
 
+		this.onMatchEnd = onMatchEnd;
 		this.drawPlayers();
 		this.drawUi();
 		this.startMatch = Date.now();
+		this.timer = new ex.Timer({
+			fcn: () => this.countTime(),
+			interval: 1000,
+			repeats: true
+		});
+		this.engine.currentScene.add(this.timer);
+		this.timer.start();
 
 		//Global listeners - roda a cada frame
 		this.engine.on('preupdate', () => {
@@ -47,17 +57,18 @@ class Pong {
 
 	drawUi(): void {
 		const textY: number = 20;
+		const fontSize = Math.min(this.engine.drawWidth, this.engine.drawHeight) * 0.05;
 
 		const font = new ex.Font({
 			family: 'Impact',
-			size: 30,
+			size: fontSize,
 			color: ex.Color.White,
 			textAlign: ex.TextAlign.Center
 		})
 
 		const timerFont = new ex.Font({
 			family: 'Impact',
-			size: 20,
+			size: fontSize * 0.6,
 			color: ex.Color.White,
 			textAlign: ex.TextAlign.Center
 		})
@@ -77,14 +88,14 @@ class Pong {
 			text: `${score.nameP1}`,
 			font: font,
 			color: ex.Color.White,
-			pos: ex.vec(70, textY),
+			pos: ex.vec(this.engine.drawWidth * .2, textY),
 
 		})
 		const player2 = new ex.Label({
 			text: `${score.nameP2}`,
 			font: font,
 			color: ex.Color.White,
-			pos: ex.vec(this.engine.drawWidth - 70, textY),
+			pos: ex.vec(this.engine.drawWidth * .8, textY),
 
 		})
 		
@@ -118,10 +129,12 @@ class Pong {
 	endMatch():void {
 		if (score.P1 < this.maxScore && score.P2 < this.maxScore) return;
 
+		const fontSize = Math.min(this.engine.drawWidth, this.engine.drawHeight) * 0.05;
+
 		const winner: string = score.P1 > score.P2 ? score.nameP1 : score.nameP2;
 		const font = new ex.Font({
 			family: 'Impact',
-			size: 50,
+			size: fontSize,
 			color: ex.Color.White,
 			textAlign: ex.TextAlign.Center
 		})
@@ -139,16 +152,20 @@ class Pong {
 			p2Score: score.P2,
 			p1Name: score.nameP1,
 			p2Name: score.nameP2,
-			startTime: new Date(this.startMatch).toISOString()
+			startTime: new Date(this.startMatch).toISOString(),
+			type: "local"
 		}
-
-		console.log({matchStats});
+		this.onMatchEnd?.(matchStats);
 
 		this.engine.add(gameOverLabel);
+
+		this.timer.stop();
 		this.engine.stop();
-		resetScores(this.maxScore);
 	}
 }
-
-const pong = new Pong();
+let finalScore: MatchStats;
+const pong = new Pong((stats) => {
+	console.log({stats});
+	finalScore = stats;
+});
 pong.start();

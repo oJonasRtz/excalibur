@@ -24,7 +24,7 @@ export class Ball extends ex.Actor {
 			color: ex.Color.White,
 			collisionType: ex.CollisionType.Passive
 		});
-		this.speed = .25;
+		this.speed = .30;
 		// const side: number = Math.random();
 		this.direction = new ex.Vector(pos.x, pos.y);
 		// this.direction.x = Number(side > .5) - Number(side < .5);
@@ -43,7 +43,7 @@ export class Ball extends ex.Actor {
 				this.direction.y = this.getRandom();
 
 				//speedup
-				if (this.speed < 1.5) this.speed += .02;
+				if (this.speed < 1.5) this.speed += .1;
 			}
 		})
 	}

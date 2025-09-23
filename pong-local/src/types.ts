@@ -1,8 +1,3 @@
-export type GameType = {
-	ballInGame: boolean;
-	gameStarted: boolean;
-}
-
 export type ScoreType = {
 	nameP1: string;
 	nameP2: string;
@@ -18,9 +13,23 @@ export type MatchStats = {
 	p1Name: string;
 	p2Name: string;
 	startTime: string;
+	type: string;
 }
 
 export type BallPosition = {
 	x: number;
 	y: number;
+}
+
+export enum returnStatus {
+	notStarted = 0,
+	running = 1,
+	paused = 2,
+	finished = 3
+}
+
+export type GameType = {
+	ballInGame: boolean;
+	status: returnStatus;
+	gameStarted: boolean;
 }
