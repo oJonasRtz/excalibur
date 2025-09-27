@@ -1,7 +1,8 @@
 import { players } from "../server.shared.js";
 
-export function addClient(ws, name) {
+export function addClient(ws, av) {
 	const id = players.length + 1;
+	const name = av[id - 1];
 	const player = {id, ws, score: 0, up: false, down: false, name};
 
 	players.push(player);

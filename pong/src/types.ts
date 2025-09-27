@@ -39,3 +39,9 @@ export type GameType = {
 }
 
 export type RemoteInput = Record<1 | 2, {up: boolean, down: boolean}>;
+
+export type InputType = {
+	type: string;
+	up: boolean;
+	down: boolean;
+}

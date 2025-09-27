@@ -17,7 +17,7 @@ wss.on("connection", (ws) => {
 		return;
 	}
 
-	const player = addClient(ws, argv[players.length + 1 & 1]);
+	const player = addClient(ws, argv);
 	ws.on("message", (message) => {
 		console.log(`Received message from ${player.name}: ${message}`);
 

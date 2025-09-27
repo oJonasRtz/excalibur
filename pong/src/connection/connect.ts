@@ -1,4 +1,5 @@
 import { gameState, score } from "../globals";
+import { checkKeys } from "./checkKeys";
 
 let socket: WebSocket | null = null;
 
@@ -11,11 +12,7 @@ export function connectPlayer(): void {
 		gameState.connected = true;
 	}
 
-	window.addEventListener("keydown", (event) => {
-		if (!socket || socket.readyState === WebSocket.CLOSED) return;
-
-		socket.send(JSON.stringify({ type: 'keydown', up: event.key === 'ArrowUp', down: event.key === 'ArrowDown' }));
-	});
+	checkKeys(socket);
 
 	socket.onmessage = (event) => {
 		const data = JSON.parse(event.data);
