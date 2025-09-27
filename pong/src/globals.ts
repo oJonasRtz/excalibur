@@ -16,3 +16,5 @@ export const gameState: GameType = {
 	opponentConnected: false,
 	allOk: false,
 }
+
+

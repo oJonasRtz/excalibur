@@ -21,6 +21,9 @@ wss.on("connection", (ws) => {
 	ws.on("message", (message) => {
 		console.log(`Received message from ${player.name}: ${message}`);
 
+		const data = JSON.parse(message);
+		if (data.type === "input")
+			broadcast(data);
 		//Server answer
 		// ws.send("Message received");
 	})
@@ -32,7 +35,7 @@ wss.on("connection", (ws) => {
 		player.up = false;
 		player.down = false;
 		if (Object.values(players).filter(p => p.connected).length < maxPlayers)
-			broadcast(JSON.stringify({type: "opponentDisconnected"}));
+			broadcast({type: "opponentDisconnected"});
 	})
 })
 

@@ -1,9 +1,9 @@
 import type { InputType } from "../types";
 
 const keys: InputType = {
-		type: "input",
-		up: false,
-		down: false
+	type: "input",
+	up: false,
+	down: false
 };
 
 export function checkKeys(socket: WebSocket | null): void {
@@ -29,6 +29,6 @@ export function checkKeys(socket: WebSocket | null): void {
 		if (keys.down === true) keys.down = !down;
 
 		if (socket.readyState === socket.OPEN)
-			socket.send(JSON.stringify(keys));
+		socket.send(JSON.stringify(keys));
 	});
 }

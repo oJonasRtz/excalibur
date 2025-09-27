@@ -5,4 +5,5 @@ export const players = {
 	2: {id: 2, name: null, ws: null, score: 0, up: false, down: false, connected: false}
 };
 
-export const maxPlayers = 2;
+//2 players and the backend
+export const maxPlayers = 3;

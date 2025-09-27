@@ -17,7 +17,7 @@ export function connectPlayer(): void {
 	socket.onmessage = (event) => {
 		const data = JSON.parse(event.data);
 
-		console.log('Message from server:', data);
+		console.log('Message from server:', {data});
 		gameState.opponentConnected = data.type !== "opponentDisconnected";
 
 		switch (data.type) {
@@ -25,6 +25,8 @@ export function connectPlayer(): void {
 				score.nameP1 = data.p1Name;
 				score.nameP2 = data.p2Name;
 				gameState.gameStarted = true;
+				break;
+			case "input":
 				break;
 		}
 	}

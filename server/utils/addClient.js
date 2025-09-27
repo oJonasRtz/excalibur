@@ -15,7 +15,7 @@ export function addClient(ws, av) {
 	if (!sentInfo && Object.values(players).filter(p => p.connected).length === 2)
 	{
 		const data = {p1Name: players[1].name, p2Name: players[2].name, type: "start"};
-		broadcast(JSON.stringify(data));
+		broadcast(data);
 		console.log("Both players connected, game started");
 		sentInfo = true;
 	}
