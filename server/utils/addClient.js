@@ -1,19 +1,23 @@
 import { players } from "../server.shared.js";
+import { broadcast } from "./broadcast.js";
+
+let sentInfo = false;
 
 export function addClient(ws, av) {
-	const id = players.length + 1;
-	const name = av[id - 1];
-	const player = {id, ws, score: 0, up: false, down: false, name};
+	const slot = Object.keys(players).find(p => !players[p].connected);
+	const player = players[slot];
+	player.name = av[slot - 1];
+	player.ws = ws;
+	player.connected = true;
 
-	players.push(player);
+	players[slot] = player;
 	console.log(`Player ${player.name} connected`);
-	if (players.length === 2)
+	if (!sentInfo && Object.values(players).filter(p => p.connected).length === 2)
 	{
-		const data = {p1Name: players[0].name, p2Name: players[1].name, type: "start"};
-		for (const p of players)
-			if (p.ws.readyState === p.ws.OPEN)
-				p.ws.send(JSON.stringify(data));
+		const data = {p1Name: players[1].name, p2Name: players[2].name, type: "start"};
+		broadcast(JSON.stringify(data));
 		console.log("Both players connected, game started");
+		sentInfo = true;
 	}
 
 	return (player);

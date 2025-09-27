@@ -24,7 +24,6 @@ export function connectPlayer(): void {
 			case "start":
 				score.nameP1 = data.p1Name;
 				score.nameP2 = data.p2Name;
-				gameState.opponentConnected = true;
 				gameState.gameStarted = true;
 				break;
 		}

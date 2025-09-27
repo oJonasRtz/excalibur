@@ -17,7 +17,7 @@ export function checkKeys(socket: WebSocket | null): void {
 		if (keys.up !== up) {keys.up = up; changed = true;}
 		if (keys.down !== down) {keys.down = down; changed = true;}
 
-		if (changed)
+		if (changed && socket.readyState === socket.OPEN)
 			socket.send(JSON.stringify(keys));
 	});
 
@@ -28,6 +28,7 @@ export function checkKeys(socket: WebSocket | null): void {
 		if (keys.up === true) keys.up = !up;
 		if (keys.down === true) keys.down = !down;
 
-		socket.send(JSON.stringify(keys));
+		if (socket.readyState === socket.OPEN)
+			socket.send(JSON.stringify(keys));
 	});
 }

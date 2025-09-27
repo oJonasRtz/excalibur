@@ -7,16 +7,11 @@ import { gameState } from './globals';
 connectPlayer();
 
 let finalScore: MatchStats;
-const pong = new Pong((stats) => {
-	console.log({stats});
-	finalScore = stats;
-});
 
 function waitGameStart(): Promise<void> {
 	return new Promise((resolve) => {
 		const check = () => {
 			if (gameState.gameStarted) {
-				pong.start();
 				resolve();
 			} else {
 				requestAnimationFrame(check);
@@ -28,4 +23,9 @@ function waitGameStart(): Promise<void> {
 
 (async () => {
 	await waitGameStart();
+	const pong = new Pong((stats) => {
+		console.log({stats});
+		finalScore = stats;
+	});
+	pong.start();
 })();

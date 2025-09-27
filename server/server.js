@@ -12,7 +12,7 @@ if (argv.length !== 2)
 const wss = new WebSocketServer({ port: 8080 });
 
 wss.on("connection", (ws) => {
-	if (players.length === maxPlayers) {
+	if (Object.values(players).filter(p => p.connected).length >= maxPlayers){
 		ws.close(1000, "Server full");
 		return;
 	}
@@ -27,9 +27,11 @@ wss.on("connection", (ws) => {
 
 	ws.on("close", () => {
 		console.log(`${player.name} disconnected`);
-		broadcast(`${player.name} disconnected`);
-		players.splice(players.indexOf(player), 1);
-		if (players.length < maxPlayers)
+		player.ws = null;
+		player.connected = false;
+		player.up = false;
+		player.down = false;
+		if (Object.values(players).filter(p => p.connected).length < maxPlayers)
 			broadcast(JSON.stringify({type: "opponentDisconnected"}));
 	})
 })
