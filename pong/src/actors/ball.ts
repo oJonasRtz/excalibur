@@ -1,8 +1,8 @@
 import * as ex from 'excalibur';
 import { Paddle } from './paddle';
-import { gameState } from '../main';
+import { gameState } from '../globals';
 import { checkVerticalCollision } from '../utils/collision';
-import { score } from '../score';
+import { score } from '../globals';
 import type { BallPosition } from '../types';
 
 const side: number = Math.random();
@@ -26,7 +26,10 @@ export class Ball extends ex.Actor {
 			collisionType: ex.CollisionType.Passive
 		});
 		this.upMargin = upMargin;
-		this.speed = .30;
+
+		//Velocidade proporcional a tela
+		const screenFactor = Math.sqrt(window.innerHeight * window.innerWidth) / 1000;
+		this.speed = 0.3 * screenFactor;
 		this.direction = new ex.Vector(pos.x, pos.y);
 	}
 
@@ -63,8 +66,8 @@ export class Ball extends ex.Actor {
 			this.direction.y = -this.direction.y;
 		}
 
-		this.pos.x += moveSpeedx;
-		this.pos.y += moveSpeedy;
+		this.pos.x += moveSpeedx * Number(gameState.allOk);
+		this.pos.y += moveSpeedy * Number(gameState.allOk);
 
 		if (this.pos.x < 0 || this.pos.x > engine.drawWidth) {
 			const right: number = Number(this.pos.x > engine.drawWidth);

@@ -1,5 +1,25 @@
 {
   "dependencies": {
-    "excalibur": "^0.30.3"
-  }
+    "excalibur": "^0.30.3",
+    "ws": "^8.18.3"
+  },
+  "name": "excalibur",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Jogos feitos para o ft_transcendence utilizando o excaliburJs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oJonasRtz/excalibur.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/oJonasRtz/excalibur/issues"
+  },
+  "homepage": "https://github.com/oJonasRtz/excalibur#readme"
 }

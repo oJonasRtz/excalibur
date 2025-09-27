@@ -31,5 +31,11 @@ export enum returnStatus {
 export type GameType = {
 	ballInGame: boolean;
 	status: returnStatus;
+	pause: boolean;
+	connected: boolean;
 	gameStarted: boolean;
+	opponentConnected: boolean;
+	allOk: boolean;
 }
+
+export type RemoteInput = Record<1 | 2, {up: boolean, down: boolean}>;

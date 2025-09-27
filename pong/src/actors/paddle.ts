@@ -1,5 +1,6 @@
 import * as ex from 'excalibur';
 import { checkVerticalCollision } from '../utils/collision';
+import { gameState } from '../globals';
 
 export class Paddle extends ex.Actor {
 	speed: number;
@@ -37,11 +38,17 @@ export class Paddle extends ex.Actor {
 		//KeyBindings
 		//left players: W (up) S (down)
 		//right players: Up (up) Down (down)
+
 		const side: boolean = this.number % 2 === 0;
+	
+		
+		// const dir: number = Number(down) - Number(up);
+
+		let dir: number = 0;
 		const up: boolean = engine.input.keyboard.isHeld(!side ? ex.Keys.W: ex.Keys.Up);
 		const down: boolean = engine.input.keyboard.isHeld(!side ? ex.Keys.S: ex.Keys.Down);
-		
-		const dir: number = Number(down) - Number(up);
-		return (dir * this.speed) * _delta;
+		dir = Number(down) - Number(up);	
+
+		return((dir * this.speed) * _delta) * Number(gameState.allOk);
 	}
 }
