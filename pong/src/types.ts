@@ -36,11 +36,13 @@ export type GameType = {
 	gameStarted: boolean;
 	opponentConnected: boolean;
 	allOk: boolean;
+	id: number;
 }
 
 export type RemoteInput = Record<1 | 2, {up: boolean, down: boolean}>;
 
 export type InputType = {
+	id: number;
 	type: string;
 	up: boolean;
 	down: boolean;

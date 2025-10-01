@@ -1,14 +1,15 @@
-import { gameState, score } from "../globals";
-import { checkKeys } from "./checkKeys";
+import { gameState, latestInput, MovePaddles, score } from "../globals";
+import { checkKeys, keys } from "./checkKeys";
 
 let socket: WebSocket | null = null;
 
 export function connectPlayer(): void {
-	const serverIp = "10.12.1.6";
+	const serverIp = "10.11.3.2";
 	socket = new WebSocket(`ws://${serverIp}:8080`);
 
 	socket.onopen = () => {
 		console.log('Connected to WebSocket server');
+		socket.send(JSON.stringify({type: "getId"}));
 		gameState.connected = true;
 	}
 
@@ -25,8 +26,21 @@ export function connectPlayer(): void {
 				score.nameP1 = data.p1Name;
 				score.nameP2 = data.p2Name;
 				gameState.gameStarted = true;
+				console.log("Game started");
+				break;
+			case "getId":
+				gameState.id = data.id;
+				keys.id = gameState.id;
+				console.log(`You are player ${gameState.id}`);
 				break;
 			case "input":
+				if (data.id === 1 || data.id === 2) {
+					const id: number = Number(data.id);
+					MovePaddles[id].up = data.up;
+					MovePaddles[id].down = data.down;
+
+					console.log(JSON.parse(JSON.stringify(MovePaddles)));
+				}
 				break;
 		}
 	}

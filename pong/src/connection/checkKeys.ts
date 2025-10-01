@@ -1,10 +1,12 @@
+import { gameState } from "../globals";
 import type { InputType } from "../types";
 
-const keys: InputType = {
-	type: "input",
-	up: false,
-	down: false
-};
+export const keys: InputType = {
+		id: 0,
+		type: "input",
+		up: false,
+		down: false
+	};
 
 export function checkKeys(socket: WebSocket | null): void {
 	if (!socket) return;
@@ -17,7 +19,7 @@ export function checkKeys(socket: WebSocket | null): void {
 		if (keys.up !== up) {keys.up = up; changed = true;}
 		if (keys.down !== down) {keys.down = down; changed = true;}
 
-		if (changed && socket.readyState === socket.OPEN)
+		if (changed && socket.readyState === socket.OPEN && gameState.id)
 			socket.send(JSON.stringify(keys));
 	});
 
@@ -28,7 +30,7 @@ export function checkKeys(socket: WebSocket | null): void {
 		if (keys.up === true) keys.up = !up;
 		if (keys.down === true) keys.down = !down;
 
-		if (socket.readyState === socket.OPEN)
-		socket.send(JSON.stringify(keys));
+		if (socket.readyState === socket.OPEN && gameState.id)
+			socket.send(JSON.stringify(keys));
 	});
 }

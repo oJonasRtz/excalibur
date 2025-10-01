@@ -90,14 +90,13 @@ export class Pong {
 	}
 
 	disconnected(): void{
-		if (!this.desconnectedLabel)
-			this.desconnectedLabel = new MyLabel("Disconnected", this.game.engine.drawWidth / 2, this.game.engine.drawHeight / 2, this.game.font);
+		if (!this.game.desconnectedLabel)
+			this.game.desconnectedLabel = new MyLabel("Disconnected", this.game.engine.drawWidth / 2, this.game.engine.drawHeight / 2, this.game.font);
 
-		if (gameState.connected && this.game.engine.currentScene.actors.includes(this.game.desconnectedLabel))
+		if (gameState.connected && gameState.opponentConnected && this.game.engine.currentScene.actors.includes(this.game.desconnectedLabel))
 			this.game.engine.currentScene.remove(this.game.desconnectedLabel);
-		else if (!gameState.connected && !this.game.engine.currentScene.actors.includes(this.game.desconnectedLabel))
+		else if ((!gameState.connected || !gameState.opponentConnected) && !this.game.engine.currentScene.actors.includes(this.game.desconnectedLabel))
 			this.game.engine.add(this.game.desconnectedLabel);
-
 	}
 
 	pauseGame(): void {

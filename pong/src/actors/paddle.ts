@@ -1,6 +1,6 @@
 import * as ex from 'excalibur';
 import { checkVerticalCollision } from '../utils/collision';
-import { gameState } from '../globals';
+import { gameState, MovePaddles } from '../globals';
 
 export class Paddle extends ex.Actor {
 	speed: number;
@@ -19,6 +19,7 @@ export class Paddle extends ex.Actor {
 		this.upMargin = upMargin;
 		this.speed = 1;
 		this.number = player;
+		console.log(`Paddle ${this.number} created`);
 	}
 
 	//Codigo que roda a cada frame
@@ -38,16 +39,16 @@ export class Paddle extends ex.Actor {
 		//KeyBindings
 		//left players: W (up) S (down)
 		//right players: Up (up) Down (down)
+		// if (gameState.allOk && (MovePaddles[1].up || MovePaddles[1].down || MovePaddles[2].up || MovePaddles[2].down))
+		// 	console.log({MovePaddles});
+		const input = {...MovePaddles[this.number]};
 
-		const side: boolean = this.number % 2 === 0;
-	
-		
-		// const dir: number = Number(down) - Number(up);
+		// if (gameState.allOk && input)
+		// 	console.log(`Paddle ${this.number} Input: `, JSON.parse(JSON.stringify(input)));
 
-		let dir: number = 0;
-		const up: boolean = engine.input.keyboard.isHeld(!side ? ex.Keys.W: ex.Keys.Up);
-		const down: boolean = engine.input.keyboard.isHeld(!side ? ex.Keys.S: ex.Keys.Down);
-		dir = Number(down) - Number(up);	
+		const dir = Number(input.down) - Number(input.up);	
+		if (gameState.allOk)
+			console.log(`Paddle ${this.number} Move: ${dir} input: `, JSON.parse(JSON.stringify(input)));
 
 		return((dir * this.speed) * _delta) * Number(gameState.allOk);
 	}

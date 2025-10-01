@@ -6,4 +6,7 @@ export const players = {
 };
 
 //2 players and the backend
-export const maxPlayers = 3;
+export const status = {
+	maxPlayers: 2,
+	allConnected: false,
+}
