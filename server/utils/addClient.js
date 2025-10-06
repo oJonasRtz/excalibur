@@ -1,16 +1,7 @@
-import { status, players, matches } from "../server.shared.js";
+import { matches } from "../server.shared.js";
 import { broadcast } from "./broadcast.js";
 
 export function addClient(ws, matchId) {
-	// const slot = Object.keys(players).find(p => !players[p].connected);
-	// const player = players[slot];
-	// player.name = av[slot - 1];
-	// player.ws = ws;
-	// player.connected = true;
-
-	// players[slot] = player;
-	// console.log(`Player ${player.name} connected`);
-
 	const match = matches[matchId];
 	if (!match) {
 		ws.close(1000, "Match not found");
@@ -32,7 +23,8 @@ export function addClient(ws, matchId) {
 
 	if (Object.values(match.players).filter(p => p.connected).length === match.maxPlayers)
 	{
-		status.allConnected = true;
+		match.allConnected = true;
+		match.gameStarted = true;
 		const data = {type: "start"};
 		broadcast(data, matchId);
 		console.log("Both players connected, game started");

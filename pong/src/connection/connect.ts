@@ -46,12 +46,10 @@ export function connectPlayer(): void {
 				updateStats(gameState.id);
 				break;
 			case "input":
-				if (data.id === 1 || data.id === 2) {
-					const id: number = Number(data.id);
-					MovePaddles[id].up = data.up;
-					MovePaddles[id].down = data.down;
-					console.log(JSON.parse(JSON.stringify(MovePaddles)));
-				}
+				const id: number = Number(data.id);
+				MovePaddles[id].up = data.up;
+				MovePaddles[id].down = data.down;
+				console.log(JSON.parse(JSON.stringify(MovePaddles)));
 				break;
 		}
 	}

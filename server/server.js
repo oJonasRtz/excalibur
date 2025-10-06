@@ -1,5 +1,5 @@
 import { WebSocketServer } from "ws";
-import { backend, matches, players, status } from "./server.shared.js";
+import { backend, matches } from "./server.shared.js";
 import { broadcast } from "./utils/broadcast.js";
 import { addClient } from "./utils/addClient.js";
 
@@ -15,11 +15,6 @@ if (argv.length !== 2)
 const wss = new WebSocketServer({ port: 8080 });
 
 wss.on("connection", (ws) => {
-	if (Object.values(players).filter(p => p.connected).length >= status.maxPlayers){
-		ws.close(1000, "Server full");
-		return;
-	}
-
 	let player = null;
 	ws.on("message", (message) => {
 		if (player) console.log(`Received message from ${player.name}: ${message}`);
@@ -28,7 +23,7 @@ wss.on("connection", (ws) => {
 		switch (data.type) {
 			case "input":
 				if (!player) return;
-				broadcast(data, player.matchId);
+				broadcast({...data}, player.matchId);
 				break;
 			case "connectPlayer":
 				try {
@@ -72,21 +67,9 @@ wss.on("connection", (ws) => {
 				ws.send(JSON.stringify({type: "Successfully connected to backend", id: backend.id}));
 				break;
 		};
-		//Server answer
-		// ws.send("Message received");
 	})
 
 	ws.on("close", () => {
-		// 	if (!player) return;
-		// 	console.log(`${player.name} disconnected`);
-		// 	player.ws = null;
-		// 	player.connected = false;
-		// 	player.up = false;
-		// 	player.down = false;
-		// 	if (Object.values(players).filter(p => p.connected).length < status.maxPlayers)
-		// 		broadcast({type: "opponentDisconnected"});
-		// 	status.allConnected = false;
-		// })
 		try {
 			if (!player) return;
 
@@ -100,7 +83,6 @@ wss.on("connection", (ws) => {
 				if (Object.values(match.players).filter(p => p.connected).length < match.maxPlayers) {
 					broadcast({type: "opponentDisconnected"}, match.id);
 					match.allConnected = false;
-					status.allConnected = false;
 				}
 			}
 		}catch (error) {
