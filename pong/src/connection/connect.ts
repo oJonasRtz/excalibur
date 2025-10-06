@@ -25,7 +25,7 @@ export function connectPlayer(): void {
 		gameState.opponentConnected = data.type !== "opponentDisconnected";
 
 		switch (data.type) {
-			case "upddateStats":
+			case "updateStats":
 				score.P1 = data.scoreP1;
 				score.P2 = data.scoreP2;
 				score.nameP1 = data.nameP1;
