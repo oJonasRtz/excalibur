@@ -1,15 +1,18 @@
-import { gameState, latestInput, MovePaddles, score } from "../globals";
+import { gameState, MovePaddles, score } from "../globals";
 import { checkKeys, keys } from "./checkKeys";
+import { updateStats } from "./utils/getScore";
 
-let socket: WebSocket | null = null;
+export let socket: WebSocket | null = null;
+let matchId: number = 1;
 
 export function connectPlayer(): void {
-	const serverIp = "10.11.3.2";
+	const serverIp = "localhost";
 	socket = new WebSocket(`ws://${serverIp}:8080`);
 
 	socket.onopen = () => {
 		console.log('Connected to WebSocket server');
-		socket.send(JSON.stringify({type: "getId"}));
+		// socket.send(JSON.stringify({type: "newMatch", maxPlayers: 2, players: ["Player1", "Player2"]}));
+		socket.send(JSON.stringify({type: "connectPlayer", matchId: matchId}));
 		gameState.connected = true;
 	}
 
@@ -22,23 +25,31 @@ export function connectPlayer(): void {
 		gameState.opponentConnected = data.type !== "opponentDisconnected";
 
 		switch (data.type) {
+			case "upddateStats":
+				score.P1 = data.scoreP1;
+				score.P2 = data.scoreP2;
+				score.nameP1 = data.nameP1;
+				score.nameP2 = data.nameP2;
+				console.log(`Score updated: P1: ${score.P1} - P2: ${score.P2}`);
+				break;
+			case "Match full":
+				matchId++;
+				break;
 			case "start":
-				score.nameP1 = data.p1Name;
-				score.nameP2 = data.p2Name;
 				gameState.gameStarted = true;
 				console.log("Game started");
 				break;
-			case "getId":
+			case "connectPlayer":
 				gameState.id = data.id;
 				keys.id = gameState.id;
 				console.log(`You are player ${gameState.id}`);
+				updateStats(gameState.id);
 				break;
 			case "input":
 				if (data.id === 1 || data.id === 2) {
 					const id: number = Number(data.id);
 					MovePaddles[id].up = data.up;
 					MovePaddles[id].down = data.down;
-
 					console.log(JSON.parse(JSON.stringify(MovePaddles)));
 				}
 				break;

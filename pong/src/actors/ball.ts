@@ -2,8 +2,8 @@ import * as ex from 'excalibur';
 import { Paddle } from './paddle';
 import { gameState } from '../globals';
 import { checkVerticalCollision } from '../utils/collision';
-import { score } from '../globals';
 import type { BallPosition } from '../types';
+import { updateStats } from '../connection/utils/getScore';
 
 const side: number = Math.random();
 let pos: BallPosition = {
@@ -76,8 +76,9 @@ export class Ball extends ex.Actor {
 			pos.x = right ? 1 : -1;
 			pos.y = (Math.random() > .5) ? 1 : -1;
 
-			score.P1 += right;
-			score.P2 += left;
+			// score.P1 += right;
+			// score.P2 += left;
+			updateStats(right ? 1 : 2, true);
 			gameState.ballInGame = !gameState.ballInGame;
 			this.kill();
 		}

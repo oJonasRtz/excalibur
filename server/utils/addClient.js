@@ -1,22 +1,40 @@
-import { status, players } from "../server.shared.js";
+import { status, players, matches } from "../server.shared.js";
 import { broadcast } from "./broadcast.js";
 
-export function addClient(ws, av) {
-	const slot = Object.keys(players).find(p => !players[p].connected);
-	const player = players[slot];
-	player.name = av[slot - 1];
+export function addClient(ws, matchId) {
+	// const slot = Object.keys(players).find(p => !players[p].connected);
+	// const player = players[slot];
+	// player.name = av[slot - 1];
+	// player.ws = ws;
+	// player.connected = true;
+
+	// players[slot] = player;
+	// console.log(`Player ${player.name} connected`);
+
+	const match = matches[matchId];
+	if (!match) {
+		ws.close(1000, "Match not found");
+		throw new Error("Match not found");
+	}
+	
+	const slot = Object.keys(match.players).find(p => !match.players[p].connected);
+	if (!slot) {
+		ws.send(JSON.stringify({type: "Match full"}));
+		ws.close(1000, "Match full");
+		throw new Error("Match full");
+	}
+	const player = match.players[slot];
 	player.ws = ws;
 	player.connected = true;
+	player.matchId = matchId;
+	player.ws.send(JSON.stringify({id: slot, type: "connectPlayer"}));
+	console.log(`Player ${player.name} connected to match ${matchId}`);
 
-	players[slot] = player;
-	console.log(`Player ${player.name} connected`);
-
-	if (Object.values(players).filter(p => p.connected).length === status.maxPlayers)
+	if (Object.values(match.players).filter(p => p.connected).length === match.maxPlayers)
 	{
 		status.allConnected = true;
-		player.ws.send(JSON.stringify({id: slot, type: "getId"}));
-		const data = {p1Name: players[1].name, p2Name: players[2].name, type: "start"};
-		broadcast(data);
+		const data = {type: "start"};
+		broadcast(data, matchId);
 		console.log("Both players connected, game started");
 	}
 

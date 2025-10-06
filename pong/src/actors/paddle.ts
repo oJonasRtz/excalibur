@@ -41,14 +41,14 @@ export class Paddle extends ex.Actor {
 		//right players: Up (up) Down (down)
 		// if (gameState.allOk && (MovePaddles[1].up || MovePaddles[1].down || MovePaddles[2].up || MovePaddles[2].down))
 		// 	console.log({MovePaddles});
-		const input = {...MovePaddles[this.number]};
+		const input = MovePaddles[this.number];
 
 		// if (gameState.allOk && input)
 		// 	console.log(`Paddle ${this.number} Input: `, JSON.parse(JSON.stringify(input)));
 
 		const dir = Number(input.down) - Number(input.up);	
-		if (gameState.allOk)
-			console.log(`Paddle ${this.number} Move: ${dir} input: `, JSON.parse(JSON.stringify(input)));
+		// if (gameState.allOk)
+		// 	console.log(`Paddle ${this.number} Move: ${dir} input: `, JSON.parse(JSON.stringify(input)));
 
 		return((dir * this.speed) * _delta) * Number(gameState.allOk);
 	}
