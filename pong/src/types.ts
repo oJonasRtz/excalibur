@@ -37,12 +37,14 @@ export type GameType = {
 	opponentConnected: boolean;
 	allOk: boolean;
 	id: number;
+	timer: string;
 }
 
 export type RemoteInput = Record<1 | 2, {up: boolean, down: boolean}>;
 
 export type InputType = {
 	id: number;
+	matchId: number;
 	type: string;
 	up: boolean;
 	down: boolean;

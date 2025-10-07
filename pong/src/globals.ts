@@ -15,7 +15,8 @@ export const gameState: GameType = {
 	gameStarted: false,
 	opponentConnected: false,
 	allOk: false,
-	id: 0
+	id: 0,
+	timer: "00:00",
 }
 
 export const MovePaddles: Record<1 | 2, {up: boolean, down: boolean}> = {
@@ -24,3 +25,4 @@ export const MovePaddles: Record<1 | 2, {up: boolean, down: boolean}> = {
 };
 
 export let latestInput: {data?: InputType} = {};
+export const matchId: number = 1;

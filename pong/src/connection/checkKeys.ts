@@ -1,9 +1,10 @@
-import { gameState } from "../globals";
+import { gameState, matchId } from "../globals";
 import type { InputType } from "../types";
 import { socket } from "./connect";
 
 export const keys: InputType = {
 	id: 0,
+	matchId: matchId,
 	type: "input",
 	up: false,
 	down: false

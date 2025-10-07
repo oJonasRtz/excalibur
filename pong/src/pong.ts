@@ -1,4 +1,4 @@
-import { gameState, score } from './globals';
+import { gameState, matchId, score } from './globals';
 import { MidleLine } from './utils/midleLine';
 import { MyLabel } from './utils/myLabel';
 import * as ex from 'excalibur';
@@ -6,6 +6,7 @@ import { Paddle } from './actors/paddle';
 import { Ball } from './actors/ball';
 import type { MatchStats } from './types';
 import { waitOpponentConnect } from './utils/waitingOpponentConnect';
+import { socket } from './connection/connect';
 
 type PongType = {
 	engine?: ex.Engine;
@@ -56,7 +57,6 @@ export class Pong {
 			repeats: true
 		});
 		this.game.engine.currentScene.add(this.game.timer);
-		this.game.timer.start();
 
 		//Global listeners - roda a cada frame
 		this.game.engine.on('preupdate', () => {
@@ -113,12 +113,9 @@ export class Pong {
 	}
 
 	countTime(): void {
-		if (gameState.allOk) return;
+		if (!gameState.allOk) return;
 
-		const totalSeconds: number = Math.floor((Date.now() - this.game.startMatch) / 1000);
-		const minutes: string = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
-		const seconds: string = String(totalSeconds % 60).padStart(2, '0');
-		this.game.timeLabel.text = `${minutes}:${seconds}`;
+		this.game.timeLabel.text = gameState.timer;
 	}
 
 	drawUi(): void {
@@ -132,7 +129,7 @@ export class Pong {
 		})
 
 		this.game.timeLabel = new ex.Label({
-			text: `00:00`,
+			text: gameState.timer,
 			font: timerFont,
 			pos: ex.vec(this.game.engine.drawWidth / 2, textY + this.game.font.size + 10),
 		})
@@ -206,10 +203,9 @@ export class Pong {
 			type: "local"
 		}
 		this.onMatchEnd?.(matchStats);
-
+		socket?.send(JSON.stringify({type: "endGame", matchId, winner}));
 		this.game.engine.add(winnerLabel);
 
-		this.game.timer.stop();
 		this.game.engine.stop();
 	}
 }
