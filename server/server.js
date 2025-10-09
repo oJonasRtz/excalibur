@@ -12,7 +12,7 @@ createMatch({
 	},
 })
 
-const wss = new WebSocketServer({ port: 8080, host: "localhost" });
+const wss = new WebSocketServer({ port: 8080 });
 
 wss.on("connection", (ws) => {
 	let player = null;
@@ -30,7 +30,7 @@ wss.on("connection", (ws) => {
 				if (!player) return;
 
 				broadcast({...data}, player.matchIndex);
-				createId(player.id, data.id);
+				// createId(player.id, data.id);
 				break;
 			case "connectPlayer":
 				try {
@@ -77,10 +77,18 @@ wss.on("connection", (ws) => {
 					type: "gameEnd",
 					matchId: data.matchId,
 					winner: data.winner,
-					scoreP1: match.players[1].score,
-					scoreP2: match.players[2].score,
-					nameP1: match.players[1].name,
-					nameP2: match.players[2].name,
+					players: {
+						player1: {
+							id: match.players[1].id,
+							name: match.players[1].name,
+							score: match.players[1].score,
+						},
+						player2: {
+							id: match.players[2].id,
+							name: match.players[2].name,
+							score: match.players[2].score,
+						}
+					},
 					duration: (() => {
 						const durationMs = match.matchDuration;
 						const minutes = Math.floor(durationMs / 60000);

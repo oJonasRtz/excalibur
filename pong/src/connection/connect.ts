@@ -6,7 +6,7 @@ import { updateStats } from "./utils/getScore";
 export let socket: WebSocket | null = null;
 
 export function connectPlayer(): void {
-	const serverIp = "localhost";
+	const serverIp = "10.13.6.1";
 	socket = new WebSocket(`ws://${serverIp}:8080`);
 
 	socket.onopen = () => {

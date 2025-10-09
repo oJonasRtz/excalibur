@@ -71,7 +71,6 @@ export class Ball extends ex.Actor {
 
 		if (this.pos.x < 0 || this.pos.x > engine.drawWidth) {
 			const right: number = Number(this.pos.x > engine.drawWidth);
-			const left: number = Number(this.pos.x < 0);
 
 			pos.x = right ? 1 : -1;
 			pos.y = (Math.random() > .5) ? 1 : -1;
