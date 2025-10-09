@@ -1,5 +1,5 @@
 import { matches } from "../server.shared.js";
-import { startMatchTimer, stopMatchTimer } from "../utils/matchTimer.js";
+import { stopMatchTimer } from "../utils/matchTimer.js";
 import { createId } from "./createId.js";
 
 const MAX_ARRAY_INDEX = 2 ** 32 - 2;
@@ -16,8 +16,8 @@ export function createMatch(data) {
 
 	const newMatch = {
 		players: {
-			1: {id: data.players[1].id, name: data.players[1].name, score: 0},
-			2: {id: data.players[2].id, name: data.players[2].name, score: 0}
+			1: {id: data.players[1].id, name: data.players[1].name, score: 0, notifyEnd: false},
+			2: {id: data.players[2].id, name: data.players[2].name, score: 0, notifyEnd: false}
 		},
 		allConnected: false,
 		// id: createId(data.players[1].id, data.players[2].id),
@@ -28,19 +28,29 @@ export function createMatch(data) {
 		maxPlayers: 2,
 		maxScore: 7,
 		gameStarted: false,
+		gameEnded: false,
 	}
 
 	matches[i] = newMatch;
-	startMatchTimer(newMatch, i);
+	// startMatchTimer(newMatch, i);
 	console.log(`New match created with ID: ${newMatch.id}`);
 	return (newMatch);
 }
 
-export function removeMatch(index) {
+export function removeMatch(index, force = false) {
 	const match = matches[index];
 
+	if (!force && Object.values(match.players).every(p => !p.notifyEnd) && !match.gameEnded) return;
+
 	stopMatchTimer(match);
-	matches[index] = undefined;
+	if (!force) {
+		Object.values(matches[index].players).forEach(p => {
+			if (p.ws.readyState === p.ws.OPEN) {
+				p.ws.close(1000, "Match ended");
+			}
+		});
+	}
+	delete matches[index];
 	//No double include on freeIndexes
 	if (!freeIndexes.includes(Number(index)))
 		freeIndexes.push(Number(index));

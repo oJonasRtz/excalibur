@@ -1,4 +1,4 @@
-import type { GameType, InputType, ScoreType } from "./types";
+import type { GameType, IdentityType, InputType, ScoreType } from "./types";
 
 export const score: ScoreType = {
 	nameP1: "",
@@ -15,7 +15,6 @@ export const gameState: GameType = {
 	gameStarted: false,
 	opponentConnected: false,
 	allOk: false,
-	id: 0,
 	timer: "00:00",
 }
 
@@ -25,4 +24,10 @@ export const MovePaddles: Record<1 | 2, {up: boolean, down: boolean}> = {
 };
 
 export let latestInput: {data?: InputType} = {};
-export const matchId: number = 1;
+// export const matchId: number = 1;
+
+export const identity: IdentityType = {
+	id: 0,
+	matchId: 1,
+	name: prompt("Enter your name: ") || "",
+};

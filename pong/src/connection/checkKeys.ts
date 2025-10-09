@@ -1,10 +1,10 @@
-import { gameState, matchId } from "../globals";
+import { identity } from "../globals";
 import type { InputType } from "../types";
 import { socket } from "./connect";
 
 export const keys: InputType = {
 	id: 0,
-	matchId: matchId,
+	matchId: identity.matchId,
 	type: "input",
 	up: false,
 	down: false
@@ -16,7 +16,7 @@ function handleKey(up: boolean, down: boolean) {
 	if (keys.up !== up) {keys.up = up; changed = true;}
 	if (keys.down !== down) {keys.down = down; changed = true;}
 
-	if (changed && socket.readyState === socket.OPEN && gameState.id)
+	if (changed && socket.readyState === socket.OPEN && identity.id)
 		socket.send(JSON.stringify(keys));
 }
 

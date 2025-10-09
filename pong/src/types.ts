@@ -36,7 +36,6 @@ export type GameType = {
 	gameStarted: boolean;
 	opponentConnected: boolean;
 	allOk: boolean;
-	id: number;
 	timer: string;
 }
 
@@ -48,4 +47,10 @@ export type InputType = {
 	type: string;
 	up: boolean;
 	down: boolean;
+}
+
+export type IdentityType = {
+	id: number;
+	matchId: number;
+	name: string;
 }

@@ -23,9 +23,6 @@ function waitGameStart(): Promise<void> {
 
 (async () => {
 	await waitGameStart();
-	const pong = new Pong((stats) => {
-		console.log({stats});
-		finalScore = stats;
-	});
+	const pong = new Pong();
 	pong.start();
 })();

@@ -1,5 +1,6 @@
-import { gameState, matchId, MovePaddles, score } from "../globals";
+import { gameState, identity, MovePaddles, score } from "../globals";
 import { checkKeys, keys } from "./checkKeys";
+import { notifyClose } from "./notify/notifyClose";
 import { updateStats } from "./utils/getScore";
 
 export let socket: WebSocket | null = null;
@@ -11,11 +12,12 @@ export function connectPlayer(): void {
 	socket.onopen = () => {
 		console.log('Connected to WebSocket server');
 		// socket.send(JSON.stringify({type: "newMatch", maxPlayers: 2, players: ["Player1", "Player2"]}));
-		socket.send(JSON.stringify({type: "connectPlayer", matchId: matchId}));
+		socket.send(JSON.stringify({type: "connectPlayer", matchId: identity.matchId, name: identity.name, id: identity.id}));
 		gameState.connected = true;
 	}
 
 	checkKeys(socket);
+	notifyClose();
 
 	socket.onmessage = (event) => {
 		const data = JSON.parse(event.data);
@@ -36,10 +38,10 @@ export function connectPlayer(): void {
 				console.log("Game started");
 				break;
 			case "connectPlayer":
-				gameState.id = data.id;
-				keys.id = gameState.id;
-				console.log(`You are player ${gameState.id}`);
-				updateStats(gameState.id);
+				identity.id = data.id;
+				keys.id = identity.id;
+				console.log(`You are player ${identity.id}`);
+				updateStats(identity.id);
 				break;
 			case "input":
 				const id: number = Number(data.id);

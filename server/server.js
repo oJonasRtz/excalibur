@@ -8,38 +8,34 @@ import { createMatch, removeMatch } from "./creates/createMatch.js";
 createMatch({
 	players: {
 		1: {id: 1, name: "Raltz"},
-		2: {id: 2, name: "ShaoulinMatadorDePorco"}
+		2: {id: 2, name: "Kirlia"}
 	},
 })
-
-// const argv = process.argv.slice(2);
-// if (argv.length !== 2)
-// {
-// 	console.log("Usage: node server.js <player1_name> <player2_name>");
-// 	process.exit(1);
-// }
 
 const wss = new WebSocketServer({ port: 8080, host: "localhost" });
 
 wss.on("connection", (ws) => {
 	let player = null;
+	ws.player = null;
 	ws.on("message", (message) => {
 		if (player) console.log(`Received message from ${player.name}: ${message}`);
 
 		const data = JSON.parse(message);
 		const match = data.matchId
-					? Object.values(matches).find(m => m.id === data.matchId)
+					? Object.values(matches).filter(m => m).find(m => m.id === data.matchId)
 					: null;
 
 		switch (data.type) {
 			case "input":
 				if (!player) return;
-				broadcast({...data}, player.matchId);
+
+				broadcast({...data}, player.matchIndex);
 				createId(player.id, data.id);
 				break;
 			case "connectPlayer":
 				try {
-					player = addClient(ws, data.matchId);
+					player = addClient(ws, data);
+					ws.player = player;
 				} catch (error) {
 					console.error("Error adding client:", error);
 					ws.close(1000, "Error adding client");
@@ -72,6 +68,11 @@ wss.on("connection", (ws) => {
 				break;
 			case "endGame":
 				// if (!backend.connected) return;
+				player.notifyEnd = true;
+				match.gameEnded = true;
+				//Wait for both players to notify end
+				if (Object.values(match.players).some(p => !p.notifyEnd)) return;
+
 				const stats = {
 					type: "gameEnd",
 					matchId: data.matchId,
@@ -93,33 +94,38 @@ wss.on("connection", (ws) => {
 				// backend.ws.send(JSON.stringify(stats));
 				console.log(`Sent match ${player.matchId} stats to backend`);
 				console.log({stats});
-				removeMatch(player.matchId);
+				removeMatch(player.matchIndex);
+				console.log(`got matches: ${Object.keys(matches)}`);
 				break;
+			// case "close":
+			// 	closeConnection(ws);
+			// 	break;
 		};
 	})
 
+	ws.on("error", (error) => {
+		console.error("WebSocket error:", error);
+	});
+
 	ws.on("close", () => {
-		try {
-			if (!player) return;
+		console.log("Connection closed");
+		const match = Object.values(matches).find(m => m && Object.values(m.players).some(p => p.ws === ws));
+		if (!match) return;
+		const player = Object.values(match.players).find(p => p.ws === ws);
+		if (!player) return;
+		const key = Object.keys(matches).find(i => matches[i] && matches[i].id === match.id);
 
-			// const match = matches[player.matchId];
-			const match = Object.values(matches).find(m => m.id === player.matchId);
-			if (match) {
-				console.log(`Player ${player.name} disconnected from match ${match.id}`);
-				player.ws = null;
-				player.connected = false;
-				player.up = false;
-				player.down = false;
-				if (Object.values(match.players).filter(p => p.connected).length < match.maxPlayers) {
-					const key = Object.keys(matches).find(index => matches[index].id === match.id);
-					broadcast({type: "opponentDisconnected"}, key);
-					match.allConnected = false;
-				}
-			}
-		}catch (error) {
-			console.error("Error handling client disconnect:", error);
+		console.log(`Player ${player.name} disconnected from match ${match.id}`);
+		player.connected = false;
+		player.ws = null;
+
+		broadcast({type: "opponentDisconnected"}, key);
+		match.allConnected = false;
+
+		if (match.gameStarted && !match.gameEnded && Object.values(match.players).every(p => !p.connected)) {
+			console.log(`All players disconnected, removing match ${match.id}`);
+			removeMatch(key, true);
 		}
-
 	})
 });
 

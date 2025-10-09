@@ -1,4 +1,4 @@
-import { gameState, matchId, score } from './globals';
+import { gameState, identity, score } from './globals';
 import { MidleLine } from './utils/midleLine';
 import { MyLabel } from './utils/myLabel';
 import * as ex from 'excalibur';
@@ -7,6 +7,7 @@ import { Ball } from './actors/ball';
 import type { MatchStats } from './types';
 import { waitOpponentConnect } from './utils/waitingOpponentConnect';
 import { socket } from './connection/connect';
+import { notifyEnd } from './connection/notify/notifyEnd';
 
 type PongType = {
 	engine?: ex.Engine;
@@ -30,9 +31,9 @@ export class Pong {
 		maxScore: 7,
 		height: 50
 	}
-	onMatchEnd?: (stats: MatchStats) => void;
+	// onMatchEnd?: (stats: MatchStats) => void;
 
-	constructor(onMatchEnd?: (stats: MatchStats) => void) {
+	constructor() {
 		this.game.engine = new ex.Engine({
 			width: window.innerWidth,
 			height: window.innerHeight,
@@ -47,7 +48,6 @@ export class Pong {
 			color: ex.Color.White,
 			textAlign: ex.TextAlign.Center
 		});
-		this.onMatchEnd = onMatchEnd;
 		this.drawUi();
 		this.drawPlayers();
 		this.game.startMatch = Date.now();
@@ -192,20 +192,20 @@ export class Pong {
 
 		const winnerLabel = new MyLabel(`${winner} wins!`, this.game.engine.drawWidth / 2, this.game.engine.drawHeight / 2, this.game.font);
 
-		const matchStats: MatchStats = {
-			winner: winner,
-			matchTime: this.game.timeLabel.text,
-			p1Score: score.P1,
-			p2Score: score.P2,
-			p1Name: score.nameP1,
-			p2Name: score.nameP2,
-			startTime: new Date(this.game.startMatch).toISOString(),
-			type: "local"
-		}
-		this.onMatchEnd?.(matchStats);
-		socket?.send(JSON.stringify({type: "endGame", matchId, winner}));
+		// const matchStats: MatchStats = {
+		// 	winner: winner,
+		// 	matchTime: this.game.timeLabel.text,
+		// 	p1Score: score.P1,
+		// 	p2Score: score.P2,
+		// 	p1Name: score.nameP1,
+		// 	p2Name: score.nameP2,
+		// 	startTime: new Date(this.game.startMatch).toISOString(),
+		// 	type: "local"
+		// }
+		// this.onMatchEnd?.(matchStats);
+		// socket?.send(JSON.stringify({type: "endGame", matchId: identity.matchId, winner}));
+		notifyEnd(winner);
 		this.game.engine.add(winnerLabel);
-
 		this.game.engine.stop();
 	}
 }
