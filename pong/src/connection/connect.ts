@@ -1,4 +1,4 @@
-import { gameState, identity, MovePaddles, score } from "../globals";
+import { gameState, identity, MovePaddles, pos, score, setPos } from "../globals";
 import { checkKeys, keys } from "./checkKeys";
 import { notifyClose } from "./notify/notifyClose";
 import { updateStats } from "./utils/getScore";
@@ -6,13 +6,12 @@ import { updateStats } from "./utils/getScore";
 export let socket: WebSocket | null = null;
 
 export function connectPlayer(): void {
-	const serverIp = "10.13.6.1";
+	const serverIp = "localhost";
 	socket = new WebSocket(`ws://${serverIp}:8080`);
 
 	socket.onopen = () => {
 		console.log('Connected to WebSocket server');
-		// socket.send(JSON.stringify({type: "newMatch", maxPlayers: 2, players: ["Player1", "Player2"]}));
-		socket.send(JSON.stringify({type: "connectPlayer", matchId: identity.matchId, name: identity.name, id: identity.id}));
+		socket?.send(JSON.stringify({type: "connectPlayer", matchId: identity.matchId, name: identity.name, id: identity.id}));
 		gameState.connected = true;
 	}
 
@@ -27,11 +26,14 @@ export function connectPlayer(): void {
 
 		switch (data.type) {
 			case "updateStats":
-				score.P1 = data.scoreP1;
-				score.P2 = data.scoreP2;
-				score.nameP1 = data.nameP1;
-				score.nameP2 = data.nameP2;
-				console.log(`Score updated: P1: ${score.P1} - P2: ${score.P2}`);
+				for (const [key, val] of Object.entries(data.scores)) {
+					const i: number = Number(key);
+					const name: string = val.name;
+					const scoreVal: number = val.score;
+					score[i] = {name, score: scoreVal};
+				}
+				console.table(score);
+				console.log(`Score updated: P1: ${score[1].score} - P2: ${score[2].score}`);
 				break;
 			case "start":
 				gameState.gameStarted = true;
@@ -40,17 +42,21 @@ export function connectPlayer(): void {
 			case "connectPlayer":
 				identity.id = data.id;
 				keys.id = identity.id;
+				setPos(data.side);
 				console.log(`You are player ${identity.id}`);
 				updateStats(identity.id);
 				break;
 			case "input":
 				const id: number = Number(data.id);
-				MovePaddles[id].up = data.up;
-				MovePaddles[id].down = data.down;
+				MovePaddles[id].up = data.up as boolean;
+				MovePaddles[id].down = data.down as boolean;
 				console.log(JSON.parse(JSON.stringify(MovePaddles)));
 				break;
 			case "timer":
 				gameState.timer = data.time;
+				break;
+			case "ballCollided":
+				pos.rand = data.rand;
 				break;
 		}
 	}

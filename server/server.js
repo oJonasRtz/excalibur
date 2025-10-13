@@ -6,10 +6,19 @@ import { createId } from "./creates/createId.js";
 import { createMatch, removeMatch } from "./creates/createMatch.js";
 
 createMatch({
+	// id: 1,
 	players: {
-		1: {id: 1, name: "Raltz"},
-		2: {id: 2, name: "Kirlia"}
+		1: {id: 4002, name: "Raltz"},
+		2: {id: 8922, name: "Kirlia"}
 	},
+})
+
+createMatch({
+	// id: 2,
+	players: {
+		1: {id: 314, name: "Pikachu"},
+		2: {id: 271, name: "Eevee"}
+	}
 })
 
 const wss = new WebSocketServer({ port: 8080 });
@@ -18,13 +27,11 @@ wss.on("connection", (ws) => {
 	let player = null;
 	ws.player = null;
 	ws.on("message", (message) => {
-		if (player) console.log(`Received message from ${player.name}: ${message}`);
-
 		const data = JSON.parse(message);
 		const match = data.matchId
 					? Object.values(matches).filter(m => m).find(m => m.id === data.matchId)
 					: null;
-
+		if (player) console.log(`Received message from ${player.name}: ${data}`);
 		switch (data.type) {
 			case "input":
 				if (!player) return;
@@ -48,12 +55,23 @@ wss.on("connection", (ws) => {
 					match.players[data.id].score++;
 				const score = {
 					type: "updateStats",
-					scoreP1: match.players[1].score,
-					scoreP2: match.players[2].score,
-					nameP1: match.players[1].name,
-					nameP2: match.players[2].name,
+					// scoreP1: match.players[1].score,
+					// scoreP2: match.players[2].score,
+					// nameP1: match.players[1].name,
+					// nameP2: match.players[2].name,
+					scores: (() => {
+						const scores = {};
+						for (let i = 1; i <= match.maxPlayers; i++)	{
+							scores[i] = {
+								name: match.players[i].name,
+								score: match.players[i].score,
+							}
+						}
+						return (scores);
+					})(),
 					matchId: match.id,
 				};
+				console.log({score})
 				broadcast(score, player.matchIndex);
 				break;
 			case "newMatch":
@@ -73,41 +91,75 @@ wss.on("connection", (ws) => {
 				//Wait for both players to notify end
 				if (Object.values(match.players).some(p => !p.notifyEnd)) return;
 
-				const stats = {
-					type: "gameEnd",
-					matchId: data.matchId,
-					winner: data.winner,
-					players: {
-						player1: {
-							id: match.players[1].id,
-							name: match.players[1].name,
-							score: match.players[1].score,
-						},
-						player2: {
-							id: match.players[2].id,
-							name: match.players[2].name,
-							score: match.players[2].score,
-						}
-					},
-					duration: (() => {
+				const duration = (() => {
 						const durationMs = match.matchDuration;
 						const minutes = Math.floor(durationMs / 60000);
 						const seconds = Math.floor((durationMs % 60000) / 1000);
 						return (`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
-					})(),
-					date: (() => {
-						return new Date(match.matchStarted).toISOString();
-					})(),
+				})();
+				const date = (() => {
+					const date = new Date(match.matchStarted);
+
+					const dia = String(date.getDate()).padStart(2, '0');
+					const mes = String(date.getMonth() + 1).padStart(2, '0');
+					const ano = date.getFullYear();
+
+					const hora = String(date.getHours()).padStart(2, '0');
+					const minuto = String(date.getMinutes()).padStart(2, '0');
+					const segundo = String(date.getSeconds()).padStart(2, '0');
+
+					return `${dia}/${mes}/${ano} | ${hora}:${minuto}:${segundo}`;
+				})();
+				const stats = {
+					type: "gameEnd",
+					matchId: data.matchId,
+					// winner: data.winner,
+					// players: {
+					// 	1 : {
+					// 		id: match.players[1].id,
+					// 		name: match.players[1].name,
+					// 		score: match.players[1].score,
+					// 	},
+					// 	2 : {
+					// 		id: match.players[2].id,
+					// 		name: match.players[2].name,
+					// 		score: match.players[2].score,
+					// 	}
+					// },
+					players: Object.fromEntries(
+						Array.from({length: match.maxPlayers}, (_, i) => {
+							const p = i + 1;
+							const player = match.players[p];
+
+							return [
+								p,
+								{
+									id: player.id,
+									name: player.name,
+									score: player.score,
+									winner: data.winner === player.name,
+								}
+							]
+						}),
+					),
+					time: {
+						duration: duration,
+						startedAt: date,
+					},
 				};
 				// backend.ws.send(JSON.stringify(stats));
 				console.log(`Sent match ${player.matchId} stats to backend`);
-				console.log({stats});
+				console.log(stats);
 				removeMatch(player.matchIndex);
 				console.log(`got matches: ${Object.keys(matches)}`);
 				break;
-			// case "close":
-			// 	closeConnection(ws);
-			// 	break;
+				case "ballCollided":
+					const pos = {
+						type: "ballCollided",
+						rand: Math.random(),
+					}
+					broadcast(pos, player.matchIndex);
+					break;
 		};
 	})
 

@@ -1,12 +1,10 @@
-import { gameState, identity, score } from './globals';
+import { gameState, score } from './globals';
 import { MidleLine } from './utils/midleLine';
 import { MyLabel } from './utils/myLabel';
 import * as ex from 'excalibur';
 import { Paddle } from './actors/paddle';
 import { Ball } from './actors/ball';
-import type { MatchStats } from './types';
 import { waitOpponentConnect } from './utils/waitingOpponentConnect';
-import { socket } from './connection/connect';
 import { notifyEnd } from './connection/notify/notifyEnd';
 
 type PongType = {
@@ -31,7 +29,6 @@ export class Pong {
 		maxScore: 7,
 		height: 50
 	}
-	// onMatchEnd?: (stats: MatchStats) => void;
 
 	constructor() {
 		this.game.engine = new ex.Engine({
@@ -50,27 +47,25 @@ export class Pong {
 		});
 		this.drawUi();
 		this.drawPlayers();
-		this.game.startMatch = Date.now();
-		this.game.timer = new ex.Timer({
-			fcn: () => this.countTime(),
-			interval: 1000,
-			repeats: true
-		});
-		this.game.engine.currentScene.add(this.game.timer);
+		// this.game.startMatch = Date.now();
+		// this.game.timer = new ex.Timer({
+		// 	fcn: () => this.countTime(),
+		// 	interval: 1000,
+		// 	repeats: true
+		// });
+		// this.game.engine.currentScene.add(this.game.timer);
 
 		//Global listeners - roda a cada frame
 		this.game.engine.on('preupdate', () => {
 
 			//Var to lock the game
-			gameState.allOk = gameState.connected && gameState.opponentConnected && !gameState.pause;
+			gameState.allOk = gameState.connected && gameState.opponentConnected;
 
-			this.pauseGame();
+			// this.pauseGame();
 			this.countTime();
-			this.game.scoreLabel.text = `${score.P1} - ${score.P2}`;
+			this.game.scoreLabel.text = `${score[1]?.score} - ${score[2]?.score}`;
 			this.endMatch();
 			this.ballReset();
-			if (this.game.engine.input.keyboard.wasPressed(ex.Keys.Escape))
-				gameState.pause = !gameState.pause;
 			this.disconnected();
 			waitOpponentConnect(this.game.engine, this.game.font);
 		})
@@ -99,19 +94,6 @@ export class Pong {
 			this.game.engine.add(this.game.desconnectedLabel);
 	}
 
-	pauseGame(): void {
-		if (!this.game.pauseLabel)
-			this.game.pauseLabel = new MyLabel("Game Paused", this.game.engine.drawWidth / 2, this.game.engine.drawHeight / 2, this.game.font);
-
-		if (this.game.engine.currentScene.actors.includes(this.game.pauseLabel) && !gameState.pause)
-			this.game.engine.currentScene.remove(this.game.pauseLabel);
-
-		if (!gameState.pause) return;
-
-		if (!this.game.engine.currentScene.actors.includes(this.game.pauseLabel))
-			this.game.engine.add(this.game.pauseLabel);
-	}
-
 	countTime(): void {
 		if (!gameState.allOk) return;
 
@@ -134,7 +116,7 @@ export class Pong {
 			pos: ex.vec(this.game.engine.drawWidth / 2, textY + this.game.font.size + 10),
 		})
 		this.game.scoreLabel = new ex.Label({
-			text: `${score.P1} - ${score.P2}`,
+			text: `${score[1]?.name} - ${score[2]?.name}`,
 			font: this.game.font,
 			pos: ex.vec(this.game.engine.drawWidth / 2, textY),
 		})
@@ -144,13 +126,13 @@ export class Pong {
 
 
 		const player1 = new ex.Label({
-			text: `${score.nameP1}`,
+			text: `${score[1]?.name}`,
 			font: this.game.font,
 			color: ex.Color.White,
 			pos: ex.vec(this.game.engine.drawWidth * .2, textY),
 		})
 		const player2 = new ex.Label({
-			text: `${score.nameP2}`,
+			text: `${score[2]?.name}`,
 			font: this.game.font,
 			color: ex.Color.White,
 			pos: ex.vec(this.game.engine.drawWidth * .8, textY),
@@ -185,25 +167,11 @@ export class Pong {
 	}
 
 	endMatch():void {
-		if (score.P1 < this.game.maxScore && score.P2 < this.game.maxScore) return;
+		if (Object.values(score).every(s => s.score < this.game.maxScore)) return;
 
-		const winner: string = score.P1 > score.P2 ? score.nameP1 : score.nameP2;
-	
-
+		const winner = Object.values(score).find(s => s.score >= this.game.maxScore)?.name;	
 		const winnerLabel = new MyLabel(`${winner} wins!`, this.game.engine.drawWidth / 2, this.game.engine.drawHeight / 2, this.game.font);
 
-		// const matchStats: MatchStats = {
-		// 	winner: winner,
-		// 	matchTime: this.game.timeLabel.text,
-		// 	p1Score: score.P1,
-		// 	p2Score: score.P2,
-		// 	p1Name: score.nameP1,
-		// 	p2Name: score.nameP2,
-		// 	startTime: new Date(this.game.startMatch).toISOString(),
-		// 	type: "local"
-		// }
-		// this.onMatchEnd?.(matchStats);
-		// socket?.send(JSON.stringify({type: "endGame", matchId: identity.matchId, winner}));
 		notifyEnd(winner);
 		this.game.engine.add(winnerLabel);
 		this.game.engine.stop();

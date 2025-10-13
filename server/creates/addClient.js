@@ -33,7 +33,7 @@ export function addClient(ws, data) {
 	player.ws = ws;
 	player.connected = true;
 	player.matchIndex = Object.keys(matches).find(index => matches[index].id === data.matchId);
-	player.ws.send(JSON.stringify({id: slot, type: "connectPlayer", matchId: match.id}));
+	player.ws.send(JSON.stringify({id: slot, type: "connectPlayer", matchId: data.matchId, side: Math.random()}));
 	console.log(`Player ${player.name} connected to match ${matches[player.matchIndex].id}`);
 
 	//If both players are connected, start the game
@@ -44,6 +44,7 @@ export function addClient(ws, data) {
 		const data = {type: "start"};
 		broadcast(data, player.matchIndex);
 		console.log("Both players connected, game started");
+		match.matchStarted = Date.now();
 		startMatchTimer(match, player.matchIndex);
 	}
 

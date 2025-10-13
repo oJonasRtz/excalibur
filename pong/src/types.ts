@@ -19,6 +19,7 @@ export type MatchStats = {
 export type BallPosition = {
 	x: number;
 	y: number;
+	rand?: number;
 }
 
 export enum returnStatus {
@@ -31,7 +32,7 @@ export enum returnStatus {
 export type GameType = {
 	ballInGame: boolean;
 	status: returnStatus;
-	pause: boolean;
+	// pause: boolean;
 	connected: boolean;
 	gameStarted: boolean;
 	opponentConnected: boolean;

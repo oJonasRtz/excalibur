@@ -1,15 +1,16 @@
 import * as ex from 'excalibur';
 import { Paddle } from './paddle';
-import { gameState } from '../globals';
+import { gameState, pos } from '../globals';
 import { checkVerticalCollision } from '../utils/collision';
 import type { BallPosition } from '../types';
 import { updateStats } from '../connection/utils/getScore';
+import { ballCollided } from '../connection/notify/ballCollided';
 
-const side: number = Math.random();
-let pos: BallPosition = {
-	x: Number(side > .5) - Number(side < .5),
-	y: Number(side > .5) - Number(side < .5)
-}
+// export let side: number = 0;
+// export const pos: BallPosition = {
+// 	x: Number(gameState.side > .5) - Number(gameState.side < .5),
+// 	y: Number(gameState.side > .5) - Number(gameState.side < .5),
+// }
 
 export class Ball extends ex.Actor {
 	speed: number;
@@ -42,7 +43,7 @@ export class Ball extends ex.Actor {
 		this.on('collisionstart', (col) => {
 			if (col.other.owner instanceof Paddle) {
 				this.direction.x = -this.direction.x;
-				this.direction.y = this.getRandom();
+				this.direction.y = pos.y;
 
 				//speedup
 				if (this.speed < 1.5) this.speed += .1;
@@ -50,10 +51,6 @@ export class Ball extends ex.Actor {
 		})
 	}
 
-	getRandom(): number {
-		const val: number = Math.random();
-		return (Number(val > .5) - Number(val < .5));
-	}
 	//Codigo que roda a cada frame
 	onPreUpdate(engine: ex.Engine, delta: number): void {
 
@@ -72,8 +69,9 @@ export class Ball extends ex.Actor {
 		if (this.pos.x < 0 || this.pos.x > engine.drawWidth) {
 			const right: number = Number(this.pos.x > engine.drawWidth);
 
+			ballCollided();
 			pos.x = right ? 1 : -1;
-			pos.y = (Math.random() > .5) ? 1 : -1;
+			pos.y = (pos.rand > .5) ? 1 : -1;
 
 			// score.P1 += right;
 			// score.P2 += left;
