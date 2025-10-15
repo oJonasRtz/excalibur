@@ -1,9 +1,8 @@
 import { WebSocketServer } from "ws";
-import { backend, matches } from "./server.shared.js";
+import { matches } from "./server.shared.js";
 import { broadcast } from "./utils/broadcast.js";
-import { addClient } from "./creates/addClient.js";
-import { createId } from "./creates/createId.js";
 import { createMatch, removeMatch } from "./creates/createMatch.js";
+import { handleTypes } from "./handleMessages/handleTypes.js";
 
 createMatch({
 	// id: 1,
@@ -24,143 +23,13 @@ createMatch({
 const wss = new WebSocketServer({ port: 8080 });
 
 wss.on("connection", (ws) => {
-	let player = null;
 	ws.player = null;
 	ws.on("message", (message) => {
 		const data = JSON.parse(message);
-		const match = data.matchId
-					? Object.values(matches).filter(m => m).find(m => m.id === data.matchId)
-					: null;
-		if (player) console.log(`Received message from ${player.name}: ${data}`);
-		switch (data.type) {
-			case "input":
-				if (!player) return;
+		
+		if (ws.player) console.log(`Received message from ${ws.player.name}: ${data}`);
 
-				broadcast({...data}, player.matchIndex);
-				// createId(player.id, data.id);
-				break;
-			case "connectPlayer":
-				try {
-					player = addClient(ws, data);
-					ws.player = player;
-				} catch (error) {
-					console.error("Error adding client:", error);
-					ws.close(1000, "Error adding client");
-				}
-				break;
-			case "updateStats":
-				if (!player) return;
-
-				if (data.madeScore)
-					match.players[data.id].score++;
-				const score = {
-					type: "updateStats",
-					// scoreP1: match.players[1].score,
-					// scoreP2: match.players[2].score,
-					// nameP1: match.players[1].name,
-					// nameP2: match.players[2].name,
-					scores: (() => {
-						const scores = {};
-						for (let i = 1; i <= match.maxPlayers; i++)	{
-							scores[i] = {
-								name: match.players[i].name,
-								score: match.players[i].score,
-							}
-						}
-						return (scores);
-					})(),
-					matchId: match.id,
-				};
-				console.log({score})
-				broadcast(score, player.matchIndex);
-				break;
-			case "newMatch":
-				const newMatch = createMatch(data);
-				ws.send(JSON.stringify({type: "matchCreated", matchId: newMatch.id}));
-				break;
-			case "backend":
-				backend.ws = ws;
-				backend.connected = true;
-				console.log("Backend connected");
-				ws.send(JSON.stringify({type: "Successfully connected to backend", id: backend.id}));
-				break;
-			case "endGame":
-				// if (!backend.connected) return;
-				player.notifyEnd = true;
-				match.gameEnded = true;
-				//Wait for both players to notify end
-				if (Object.values(match.players).some(p => !p.notifyEnd)) return;
-
-				const duration = (() => {
-						const durationMs = match.matchDuration;
-						const minutes = Math.floor(durationMs / 60000);
-						const seconds = Math.floor((durationMs % 60000) / 1000);
-						return (`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
-				})();
-				const date = (() => {
-					const date = new Date(match.matchStarted);
-
-					const dia = String(date.getDate()).padStart(2, '0');
-					const mes = String(date.getMonth() + 1).padStart(2, '0');
-					const ano = date.getFullYear();
-
-					const hora = String(date.getHours()).padStart(2, '0');
-					const minuto = String(date.getMinutes()).padStart(2, '0');
-					const segundo = String(date.getSeconds()).padStart(2, '0');
-
-					return `${dia}/${mes}/${ano} | ${hora}:${minuto}:${segundo}`;
-				})();
-				const stats = {
-					type: "gameEnd",
-					matchId: data.matchId,
-					// winner: data.winner,
-					// players: {
-					// 	1 : {
-					// 		id: match.players[1].id,
-					// 		name: match.players[1].name,
-					// 		score: match.players[1].score,
-					// 	},
-					// 	2 : {
-					// 		id: match.players[2].id,
-					// 		name: match.players[2].name,
-					// 		score: match.players[2].score,
-					// 	}
-					// },
-					players: Object.fromEntries(
-						Array.from({length: match.maxPlayers}, (_, i) => {
-							const p = i + 1;
-							const player = match.players[p];
-
-							return [
-								p,
-								{
-									id: player.id,
-									name: player.name,
-									score: player.score,
-									winner: data.winner === player.name,
-								}
-							]
-						}),
-					),
-					time: {
-						duration: duration,
-						startedAt: date,
-					},
-				};
-				// backend.ws.send(JSON.stringify(stats));
-				console.log(`Sent match ${player.matchId} stats to backend`);
-				console.log(stats);
-				removeMatch(player.matchIndex);
-				console.log(`got matches: ${Object.keys(matches)}`);
-				break;
-				case "ballCollided":
-					const pos = {
-						type: "ballCollided",
-						rand: Math.random(),
-					}
-					broadcast(pos, player.matchIndex);
-					break;
-		};
+		handleTypes(ws.player, data, ws);
 	})
 
 	ws.on("error", (error) => {

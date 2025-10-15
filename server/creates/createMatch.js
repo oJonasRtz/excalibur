@@ -15,14 +15,9 @@ export function createMatch(data) {
 	}
 
 	const newMatch = {
-		// players: {
-		// 	1: {id: data.players[1].id, name: data.players[1].name, score: 0, notifyEnd: false},
-		// 	2: {id: data.players[2].id, name: data.players[2].name, score: 0, notifyEnd: false}
-		// },
 		allConnected: false,
 		players: {},
 		id: createId(data.players[1].id, data.players[2].id),
-		// id: data.id, //template
 		matchStarted: null,
 		matchDuration: 0,
 		timer: null,

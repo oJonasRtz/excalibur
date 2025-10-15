@@ -2,7 +2,6 @@ import * as ex from 'excalibur';
 import { Paddle } from './paddle';
 import { gameState, pos } from '../globals';
 import { checkVerticalCollision } from '../utils/collision';
-import type { BallPosition } from '../types';
 import { updateStats } from '../connection/utils/getScore';
 import { ballCollided } from '../connection/notify/ballCollided';
 
