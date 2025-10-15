@@ -2,8 +2,8 @@ import { broadcast } from "../utils/broadcast.js";
 
 export function handleUpdateStats(props) {
 	if (!props.player) return;
-	
-	if (props.data.madeScore)
+
+	if (props.data.madeScore && props.match.players[props.data.id].score < props.match.maxScore)
 		props.match.players[props.data.id].score++;
 	const score = {
 		type: "updateStats",

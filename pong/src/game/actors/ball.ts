@@ -1,9 +1,9 @@
 import * as ex from 'excalibur';
 import { Paddle } from './paddle';
-import { gameState, pos } from '../globals';
-import { checkVerticalCollision } from '../utils/collision';
-import { updateStats } from '../connection/utils/getScore';
-import { ballCollided } from '../connection/notify/ballCollided';
+import { gameState, pos } from '../../globals';
+import { checkVerticalCollision } from '../../utils/collision';
+import { updateStats } from '../../connection/utils/getScore';
+import { ballCollided } from '../../connection/notify/ballCollided';
 
 // export let side: number = 0;
 // export const pos: BallPosition = {

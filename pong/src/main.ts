@@ -1,12 +1,9 @@
-import type { MatchStats } from './types';
 import "./style.css"
 import { connectPlayer } from './connection/connect';
-import { Pong } from './pong';
+import { Pong } from './game/pong';
 import { gameState } from './globals';
 
 connectPlayer();
-
-let finalScore: MatchStats;
 
 function waitGameStart(): Promise<void> {
 	return new Promise((resolve) => {

@@ -1,32 +1,15 @@
 import { removeMatch } from "../creates/createMatch.js";
 import { matches } from "../server.shared.js";
+import { getTime } from "../utils/getTime.js";
 
 export function handleEndGame(props) {
 	// if (!backend.connected) return;
 	props.player.notifyEnd = true;
 	props.match.gameEnded = true;
+
 	//Wait for both players to notify end
 	if (Object.values(props.match.players).some(p => !p.notifyEnd)) return;
 
-	const duration = (() => {
-			const durationMs = props.match.matchDuration;
-			const minutes = Math.floor(durationMs / 60000);
-			const seconds = Math.floor((durationMs % 60000) / 1000);
-			return (`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
-	})();
-	const date = (() => {
-		const date = new Date(props.match.matchStarted);
-
-		const dia = String(date.getDate()).padStart(2, '0');
-		const mes = String(date.getMonth() + 1).padStart(2, '0');
-		const ano = date.getFullYear();
-
-		const hora = String(date.getHours()).padStart(2, '0');
-		const minuto = String(date.getMinutes()).padStart(2, '0');
-		const segundo = String(date.getSeconds()).padStart(2, '0');
-
-		return `${dia}/${mes}/${ano} | ${hora}:${minuto}:${segundo}`;
-	})();
 	const stats = {
 		type: "gameEnd",
 		matchId: props.match.id,
@@ -47,8 +30,14 @@ export function handleEndGame(props) {
 			}),
 		),
 		time: {
-			duration: duration,
-			startedAt: date,
+			duration: (() => {
+				const { minute, second } = getTime(props.match.matchDuration);
+				return (`${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`);
+			})(),
+			startedAt: (() => {
+				const time = getTime(props.match.matchStarted);
+				return `${time.day}/${time.month}/${time.year} | ${time.hour}:${time.minute}:${time.second}`;
+			})(),
 		},
 	};
 	// backend.ws.send(JSON.stringify(stats));

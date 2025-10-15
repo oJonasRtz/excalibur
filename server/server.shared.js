@@ -1,8 +1,9 @@
 export const matches = {};
 
-export const backend = {
+export const lobby = {
 	id: 0,
-	name: "backend",
+	name: "lobby",
 	ws: null,
 	connected: false,
 }
+

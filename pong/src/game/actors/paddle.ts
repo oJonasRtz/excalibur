@@ -1,6 +1,6 @@
 import * as ex from 'excalibur';
-import { checkVerticalCollision } from '../utils/collision';
-import { gameState, MovePaddles } from '../globals';
+import { checkVerticalCollision } from '../../utils/collision';
+import { gameState, movePaddles } from '../../globals';
 
 export class Paddle extends ex.Actor {
 	speed: number;
@@ -22,23 +22,17 @@ export class Paddle extends ex.Actor {
 		console.log(`Paddle ${this.number} created`);
 	}
 
-	//Codigo que roda a cada frame
 	onPreUpdate(engine: ex.Engine, _delta: number): void {
-		const moveSpeed: number = this.getMoveSpeed(engine, _delta);
+		const moveSpeed: number = this.getMoveSpeed(_delta);
 
-		//colisao com as bordas
 		if (checkVerticalCollision(this.pos.y + moveSpeed, this.height, engine.drawHeight, this.upMargin))
 			return;
 
-		//Move a raquete
 		this.pos.y += moveSpeed;
 	}
 
-	//Utils
-	getMoveSpeed(engine: ex.Engine, _delta: number): number {
-		// const input: {up: boolean, down: boolean} = MovePaddles[this.number];
-		// console.log(this.number, MovePaddles[this.number]);
-		const input = MovePaddles[this.number];
+	getMoveSpeed(_delta: number): number {
+		const input = movePaddles[this.number];
 
 		const dir = Number(input.down) - Number(input.up);	
 

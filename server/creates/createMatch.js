@@ -39,7 +39,6 @@ export function createMatch(data) {
 	}
 
 	matches[i] = newMatch;
-	// startMatchTimer(newMatch, i);
 	console.log(`New match created with ID: ${newMatch.id}`);
 	return (newMatch);
 }
@@ -47,7 +46,7 @@ export function createMatch(data) {
 export function removeMatch(index, force = false) {
 	const match = matches[index];
 
-	if (!force && Object.values(match.players).every(p => !p.notifyEnd) && !match.gameEnded) return;
+	if (!force && match && Object.values(match.players).every(p => !p.notifyEnd) && !match.gameEnded) return;
 
 	stopMatchTimer(match);
 	if (!force) {
@@ -57,6 +56,7 @@ export function removeMatch(index, force = false) {
 			}
 		});
 	}
+
 	delete matches[index];
 	//No double include on freeIndexes
 	if (!freeIndexes.includes(Number(index)))

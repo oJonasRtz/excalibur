@@ -1,5 +1,5 @@
 import { matches } from "../server.shared.js";
-import { handleBackEnd } from "./handleBackend.js";
+import { handleLobby } from "./handleLobby.js";
 import { handleBallCollided } from "./handleBallCollided.js";
 import { handleConnect } from "./handleConnect.js";
 import { handleEndGame } from "./handleEndGame.js";
@@ -14,7 +14,7 @@ const map = {
 	updateStats: handleUpdateStats,
 	endGame: handleEndGame,
 	ballCollided: handleBallCollided,
-	backend: handleBackEnd,
+	connectLobby: handleLobby,
 };
 
 export function handleTypes(player, data, ws) {

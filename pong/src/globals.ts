@@ -1,11 +1,10 @@
-import type { BallPosition, GameType, IdentityType, InputType, ScoreType } from "./types";
+import type { BallPosition, GameType, IdentityType } from "./types";
 
 export const score: Record<number, {name: string, score: number}> = {};
 
 export const gameState: GameType = {
 	ballInGame: false,
-	// pause: false,
-	status: 0,
+	gameEnd: false,
 	connected: false,
 	gameStarted: false,
 	opponentConnected: false,
@@ -13,13 +12,10 @@ export const gameState: GameType = {
 	timer: "00:00",
 };
 
-export const MovePaddles: Record<1 | 2, {up: boolean, down: boolean}> = {
+export const movePaddles: Record<number, {up: boolean, down: boolean}> = {
 	1: {up: false, down: false},
 	2: {up: false, down: false}
 };
-
-export let latestInput: {data?: InputType} = {};
-// export const matchId: number = 1;
 
 export const identity: IdentityType = {
 	id: 0,
@@ -38,3 +34,12 @@ export function setPos(side: number): void {
 	pos.y = Number(side > .5) - Number(side < .5);
 	pos.rand = side;
 }
+
+export const RECONNECTION__DELAY: number = 1000;
+
+export const LANGUAGE =  "EN";
+
+export  const texts: Record<string, {disconnect: string, win: string, waitOpponent: string}> = {}
+
+texts["EN"] = {disconnect: "Awaiting connection", win: "won!", waitOpponent: "Waiting for opponent..."};
+texts["PT"] = {disconnect: "Aguardando conexão", win: "ganhou!", waitOpponent: "Aguardando o oponente..."};

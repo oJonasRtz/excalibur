@@ -4,6 +4,8 @@ import { broadcast } from "./utils/broadcast.js";
 import { createMatch, removeMatch } from "./creates/createMatch.js";
 import { handleTypes } from "./handleMessages/handleTypes.js";
 
+
+//Matches de template para testes apagar futuramente
 createMatch({
 	// id: 1,
 	players: {
@@ -14,6 +16,7 @@ createMatch({
 
 createMatch({
 	// id: 2,
+	type: "newMatch",
 	players: {
 		1: {id: 314, name: "Pikachu"},
 		2: {id: 271, name: "Eevee"}
@@ -38,6 +41,7 @@ wss.on("connection", (ws) => {
 
 	ws.on("close", () => {
 		console.log("Connection closed");
+
 		const match = Object.values(matches).find(m => m && Object.values(m.players).some(p => p.ws === ws));
 		if (!match) return;
 		const player = Object.values(match.players).find(p => p.ws === ws);
@@ -48,12 +52,13 @@ wss.on("connection", (ws) => {
 		player.connected = false;
 		player.ws = null;
 
-		broadcast({type: "opponentDisconnected"}, key);
+		broadcast({type: "opponentConnection", connected: false}, key);
 		match.allConnected = false;
 
 		if (match.gameStarted && !match.gameEnded && Object.values(match.players).every(p => !p.connected)) {
 			console.log(`All players disconnected, removing match ${match.id}`);
 			removeMatch(key, true);
+			//Notify matchMaking after this
 		}
 	})
 });

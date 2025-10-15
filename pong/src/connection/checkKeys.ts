@@ -10,11 +10,24 @@ export const keys: InputType = {
 	down: false
 };
 
-function handleKey(up: boolean, down: boolean) {
+const UPKEYS = ["ArrowUp", "w", "W"]; 
+const DOWNKEYS = ["ArrowDown", "s", "S"];
+
+function handleKey(event: KeyboardEvent, isPressed: boolean = true) {
+	if (!socket) return;
+
+	let up: boolean = UPKEYS.includes(event.key);
+	let down: boolean = DOWNKEYS.includes(event.key);
 	let changed: boolean = false;
 
-	if (keys.up !== up) {keys.up = up; changed = true;}
-	if (keys.down !== down) {keys.down = down; changed = true;}
+	if (!isPressed) {
+		up = !up && keys.up;
+		down = !down && keys.down;
+	}
+
+	changed = keys.up !== up || keys.down !== down;
+	keys.up = keys.up !== up ? up : keys.up;
+	keys.down = keys.down !== down ? down : keys.down; 
 
 	if (changed && socket.readyState === socket.OPEN && identity.id)
 		socket.send(JSON.stringify(keys));
@@ -24,16 +37,10 @@ export function checkKeys(socket: WebSocket | null): void {
 	if (!socket) return;
 
 	window.addEventListener("keydown", (event) => {
-		const up: boolean = event.key === "ArrowUp" || event.key === "w" || event.key === "W";
-		const down: boolean = event.key === "ArrowDown" || event.key === "s" || event.key === "S";
-
-		handleKey(up, down);
+		handleKey(event);
 	});
 
 	window.addEventListener("keyup", (event) => {
-		const up: boolean = event.key === "ArrowUp" || event.key === "w" || event.key === "W";
-		const down: boolean = event.key === "ArrowDown" || event.key === "s" || event.key === "S";
-
-		handleKey(!up && keys.up, !down && keys.down);
+		handleKey(event, false);
 	});
 }

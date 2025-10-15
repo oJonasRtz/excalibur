@@ -1,4 +1,5 @@
 import { broadcast } from "../utils/broadcast.js";
+import { getTime } from "./getTime.js";
 
 const INTERVALS = 1000; //1 second
 
@@ -8,9 +9,8 @@ export function startMatchTimer(match, i) {
 	match.timer = setInterval(() => {
 		match.matchDuration = Date.now() - match.matchStarted;
 
-		const minutes = Math.floor(match.matchDuration / 60000);
-		const seconds = Math.floor((match.matchDuration % 60000) / 1000);
-		const formatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+		const { minute, second } = getTime(match.matchDuration, true);
+		const formatted = `${minute}:${second}`;
 		const message = {
 			type: "timer",
 			time: formatted,
