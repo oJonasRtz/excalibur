@@ -1,6 +1,6 @@
 import { gameState, identity, RECONNECTION__DELAY } from "../globals";
 import { checkKeys } from "./checkKeys";
-import { handleType } from "./handles/handleType";
+import { handleType } from "./handlers/handleType";
 
 export let socket: WebSocket | null = null;
 

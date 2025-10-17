@@ -1,8 +1,10 @@
+import { BORDERSIZE } from "../game/utils/ui/drawUi";
+
+const MARGIN: number = 10;
 
 export function checkVerticalCollision(newPos: number, actorHeight: number, roomHeight: number, upMargin: number): boolean {
-	const margin: number = 10;
-	const bottom: boolean = newPos > ((roomHeight - actorHeight / 2) - margin);
-	const top: boolean = newPos < (actorHeight / 2) + margin + upMargin;
+	const bottom: boolean = newPos > ((roomHeight - actorHeight / 2) - MARGIN - BORDERSIZE);
+	const top: boolean = newPos < (actorHeight / 2) + MARGIN + upMargin;
 
 	return bottom || top;
 }

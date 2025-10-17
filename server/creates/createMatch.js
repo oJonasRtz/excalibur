@@ -31,6 +31,13 @@ export function createMatch(data) {
 		maxScore: data?.maxScore || DEFAULT.SCORE,
 		gameStarted: false,
 		gameEnded: false,
+		ball: {
+			speed: 0,
+			direction: { x: 0, y: 0 },
+			exists: false,
+			latency: 0,
+			interval: null,
+		},
 	}
 
 	for (let i = 1; i <= newMatch.maxPlayers; i++) {
@@ -41,6 +48,7 @@ export function createMatch(data) {
 			connected: false,
 			notifyEnd: false,
 			ws: null,
+			notifyBallDeath: false,
 		}
 	}
 

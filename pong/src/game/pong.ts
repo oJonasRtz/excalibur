@@ -1,10 +1,10 @@
-import { gameState, MAXSCORE, score } from '../globals';
+import { BACKGROUND, gameState, MAXSCORE, score } from '../globals';
 import { MyLabel } from '../utils/myLabel';
 import * as ex from 'excalibur';
 import { Paddle } from './actors/paddle';
 import { waitOpponentConnect } from '../utils/waitingOpponentConnect';
 import { drawPlayers } from './utils/ui/drawPlayers';
-import { countTime, drawUi } from './utils/ui/drawUi';
+import { border, countTime, drawUi } from './utils/ui/drawUi';
 import { ballReset } from './utils/ballReset';
 import { disconnected } from './utils/disconnected';
 import { endMatch } from './utils/endMatch';
@@ -24,21 +24,17 @@ type PongType = {
 	pauseLabel?: MyLabel;
 	desconnectedLabel?: MyLabel;
 	timer?: ex.Timer;
+	border?: ex.Actor;
 }
 
 export class Pong {
 	game: PongType = {
 		maxScore: MAXSCORE,
 		height: 50
-	}
+	};
 
 	constructor() {
-		this.game.engine = new ex.Engine({
-			width: window.innerWidth,
-			height: window.innerHeight,
-			displayMode: ex.DisplayMode.Fixed,
-			backgroundColor: ex.Color.Black
-		});
+		this.game.engine = new ex.Engine({ ...BACKGROUND });
 
 		const fontSize = Math.min(this.game.engine.drawWidth, this.game.engine.drawHeight) * 0.05;
 		this.game.font = new ex.Font({
@@ -56,6 +52,11 @@ export class Pong {
 
 			//Var to lock the game
 			gameState.allOk = gameState.connected && gameState.opponentConnected;
+
+			//this is not working already its just an idea for future improvements
+			//change the border color according to the score
+			if (Object.values(score).some(s => s.score > this.game.maxScore / 2)) this.game.border.color = ex.Color.Purple;
+			if (Object.values(score).some(s => s.score === this.game.maxScore - 1)) this.game.border.color = ex.Color.Red;
 
 			this.game.scoreLabel.text = `${score[1]?.score} - ${score[2]?.score}`;
 			countTime.call(this);

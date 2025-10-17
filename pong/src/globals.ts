@@ -1,4 +1,5 @@
-import type { BallPosition, GameType, IdentityType } from "./types";
+import type { GameType, IdentityType, Vector } from "./types";
+import * as ex from "excalibur";
 
 export const score: Record<number, {name: string, score: number}> = {};
 
@@ -19,22 +20,10 @@ export const movePaddles: Record<number, {up: boolean, down: boolean}> = {
 
 export const identity: IdentityType = {
 	id: 0,
-	playerId: Number(prompt("Enter your player ID")) || 1,
-	matchId: Number(prompt("Enter match ID")) || 1,
-	name: prompt("Enter your name: ") || "",
+	playerId: 0,
+	matchId: 0,
+	name: "",
 };
-
-export const pos: BallPosition = {
-	x: 0,
-	y: 0,
-	rand: 0,
-}
-
-export function setPos(side: number): void {
-	pos.x = Number(side > .5) - Number(side < .5);
-	pos.y = Number(side > .5) - Number(side < .5);
-	pos.rand = side;
-}
 
 export const MAXSCORE: number = 11;
 export const RECONNECTION__DELAY: number = 10000; //10 seconds
@@ -45,3 +34,17 @@ export  const texts: Record<string, {disconnect: string, win: string, waitOppone
 
 texts["EN"] = {disconnect: "Awaiting connection", win: "won!", waitOpponent: "Waiting for opponent..."};
 texts["PT"] = {disconnect: "Aguardando conexão", win: "ganhou!", waitOpponent: "Aguardando o oponente..."};
+
+export const BACKGROUND =  Object.freeze({
+	width: 800,
+	height: 600,
+	color: ex.Color.Black,
+	displayMode: ex.DisplayMode.Fixed,
+	z: 0,
+});
+
+export const ballPos: Vector = {
+	x: 0,
+	y: 0,
+	speed: 0,
+}

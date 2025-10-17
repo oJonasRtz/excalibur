@@ -1,7 +1,8 @@
-export type BallPosition = {
+export type Vector = {
 	x: number;
 	y: number;
-	rand?: number;
+	z?: number;
+	speed: number;
 }
 
 export type GameType = {
