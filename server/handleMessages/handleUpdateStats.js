@@ -1,12 +1,14 @@
+import { types } from "../server.shared.js";
 import { broadcast } from "../utils/broadcast.js";
 
 export function handleUpdateStats(props) {
 	if (!props.player) return;
 
+	//This need  to be fixed to count the score only once per point
 	if (props.data.madeScore && props.match.players[props.data.id].score < props.match.maxScore)
 		props.match.players[props.data.id].score++;
 	const score = {
-		type: "updateStats",
+		type: types.UPDATE_STATUS,
 		scores: (() => {
 			const scores = {};
 			for (let i = 1; i <= props.match.maxPlayers; i++)	{

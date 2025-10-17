@@ -1,15 +1,21 @@
-import { matches } from "../server.shared.js";
+import { closeCodes, matches } from "../server.shared.js";
 import { stopMatchTimer } from "../utils/matchTimer.js";
 import { createId } from "./createId.js";
 
-const MAX_ARRAY_INDEX = 2 ** 32 - 2;
+//Default values
+const DEFAULT = Object.freeze({
+	PLAYERS: 2,
+	SCORE: 11,
+	MAX_ARRAY_INDEX: 2 ** 32 - 2,
+})
+
 let freeIndexes = [];
 let index = 0;
 
 export function createMatch(data) {
 	const i = freeIndexes.length ? freeIndexes.pop() : index++;
 
-	if (i >= MAX_ARRAY_INDEX){
+	if (i >= DEFAULT.MAX_ARRAY_INDEX){
 		console.log("Maximum number of matches reached");
 		return (null);
 	}
@@ -21,8 +27,8 @@ export function createMatch(data) {
 		matchStarted: null,
 		matchDuration: 0,
 		timer: null,
-		maxPlayers: data?.maxPlayers || 2,
-		maxScore: 7,
+		maxPlayers: data?.maxPlayers || DEFAULT.PLAYERS,
+		maxScore: data?.maxScore || DEFAULT.SCORE,
 		gameStarted: false,
 		gameEnded: false,
 	}
@@ -52,7 +58,7 @@ export function removeMatch(index, force = false) {
 	if (!force) {
 		Object.values(matches[index].players).forEach(p => {
 			if (p.ws.readyState === p.ws.OPEN) {
-				p.ws.close(1000, "Match ended");
+				p.ws.close(closeCodes.NORMAL, "Match ended");
 			}
 		});
 	}

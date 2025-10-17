@@ -1,39 +1,41 @@
-import { matches } from "../server.shared.js";
+import { closeCodes, matches, types } from "../server.shared.js";
 import { broadcast } from "../utils/broadcast.js";
 import { startMatchTimer } from "../utils/matchTimer.js";
+import { sendError } from "../utils/sendError.js";
+
+const errorMessages = {
+	NOTFOUND: "Match not found",
+	FULL: "Match full or name/id not recognized",
+	DUPLICATE: "Player already connected",
+}
+
+function closeConnection(ws, message, condition) {
+	if (condition) {
+		sendError(ws, message);
+		ws.close(closeCodes.POLICY_VIOLATION, message);
+		throw new Error(message);
+	}
+}
 
 export function addClient(ws, data) {
 	const match = Object.values(matches).find(m => m.id === data.matchId);
-	if (!match) {
-		ws.close(1000, "Match not found");
-		throw new Error("Match not found");
-	}
+
+	closeConnection(ws, errorMessages.NOTFOUND, !match);
 	console.log(`Data received for match ${data.matchId}:`, data);
 
-	//Try to find player by name or id
-	let slot = Object.keys(match.players).find(p => match.players[p].name === data.name);
-	if (!slot && data.id) 
-		slot = Object.keys(match.players).find(p => match.players[p].id === data.id);
+	const slot = Object.keys(match.players).find(p => match.players[p].name === data.name && match.players[p].id === data.playerId);
+	closeConnection(ws, errorMessages.FULL, !slot);
 
-	if (!slot) {
-		ws.send(JSON.stringify({type: "Error", reason: "Match full or name/id not recognized"}));
-		ws.close(1000, "Match full or name/id not recognized");
-		throw new Error("Match full or name/id not recognized");
-	}
 
 	const player = match.players[slot];
 	//Prevent duplicate connections
-	if (player.connected && player.ws?.readyState === player.ws.OPEN) {
-		ws.send(JSON.stringify({type: "Error", reason: "Player already connected"}));
-		ws.close(1000, "Player already connected");
-		throw new Error("Player already connected");
-	}
+	closeConnection(ws, errorMessages.DUPLICATE, player.connected && player.ws?.readyState === player.ws.OPEN);
 
 	//Connect player
 	player.ws = ws;
 	player.connected = true;
 	player.matchIndex = Object.keys(matches).find(index => matches[index].id === data.matchId);
-	player.ws.send(JSON.stringify({id: slot, type: "connectPlayer", matchId: data.matchId, side: Math.random()}));
+	player.ws.send(JSON.stringify({id: slot, type: types.CONNECT_PLAYER, matchId: data.matchId, side: Math.random()}));
 	console.log(`Player ${player.name} connected to match ${matches[player.matchIndex].id}`);
 
 	//If both players are connected, start the game
@@ -41,7 +43,7 @@ export function addClient(ws, data) {
 	{
 		match.allConnected = true;
 		match.gameStarted = true;
-		const data = {type: "start"};
+		const data = {type: types.START_GAME};
 		broadcast(data, player.matchIndex);
 		console.log("Both players connected, game started");
 		match.matchStarted = Date.now();

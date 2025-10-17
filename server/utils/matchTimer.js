@@ -1,3 +1,4 @@
+import { types } from "../server.shared.js";
 import { broadcast } from "../utils/broadcast.js";
 import { getTime } from "./getTime.js";
 
@@ -12,7 +13,7 @@ export function startMatchTimer(match, i) {
 		const { minute, second } = getTime(match.matchDuration, true);
 		const formatted = `${minute}:${second}`;
 		const message = {
-			type: "timer",
+			type: types.TIMER,
 			time: formatted,
 		};
 

@@ -1,5 +1,5 @@
 import { removeMatch } from "../creates/createMatch.js";
-import { matches } from "../server.shared.js";
+import { matches, types } from "../server.shared.js";
 import { getTime } from "../utils/getTime.js";
 
 export function handleEndGame(props) {
@@ -11,7 +11,7 @@ export function handleEndGame(props) {
 	if (Object.values(props.match.players).some(p => !p.notifyEnd)) return;
 
 	const stats = {
-		type: "gameEnd",
+		type: types.END_GAME,
 		matchId: props.match.id,
 		players: Object.fromEntries(
 			Array.from({length: props.match.maxPlayers}, (_, i) => {

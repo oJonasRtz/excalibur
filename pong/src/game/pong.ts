@@ -1,11 +1,10 @@
-import { gameState, score } from '../globals';
+import { gameState, MAXSCORE, score } from '../globals';
 import { MyLabel } from '../utils/myLabel';
 import * as ex from 'excalibur';
 import { Paddle } from './actors/paddle';
 import { waitOpponentConnect } from '../utils/waitingOpponentConnect';
-import { notifyEnd } from '../connection/notify/notifyEnd';
 import { drawPlayers } from './utils/ui/drawPlayers';
-import { drawUi } from './utils/ui/drawUi';
+import { countTime, drawUi } from './utils/ui/drawUi';
 import { ballReset } from './utils/ballReset';
 import { disconnected } from './utils/disconnected';
 import { endMatch } from './utils/endMatch';
@@ -20,7 +19,7 @@ type PongType = {
 	winner?: string;
 	paddle1?: Paddle;
 	paddle2?: Paddle;
-	height: number;
+	height: number; 
 	font?: ex.Font;
 	pauseLabel?: MyLabel;
 	desconnectedLabel?: MyLabel;
@@ -29,7 +28,7 @@ type PongType = {
 
 export class Pong {
 	game: PongType = {
-		maxScore: 7,
+		maxScore: MAXSCORE,
 		height: 50
 	}
 
@@ -37,7 +36,7 @@ export class Pong {
 		this.game.engine = new ex.Engine({
 			width: window.innerWidth,
 			height: window.innerHeight,
-			displayMode: ex.DisplayMode.FillScreen,
+			displayMode: ex.DisplayMode.Fixed,
 			backgroundColor: ex.Color.Black
 		});
 
@@ -48,7 +47,7 @@ export class Pong {
 			color: ex.Color.White,
 			textAlign: ex.TextAlign.Center
 		});
-		// this.drawUi();
+
 		drawUi.call(this);
 		drawPlayers.call(this);
 
@@ -59,7 +58,7 @@ export class Pong {
 			gameState.allOk = gameState.connected && gameState.opponentConnected;
 
 			this.game.scoreLabel.text = `${score[1]?.score} - ${score[2]?.score}`;
-			// this.endMatch();
+			countTime.call(this);
 			endMatch.call(this);
 			ballReset.call(this);
 			disconnected.call(this);
@@ -67,105 +66,7 @@ export class Pong {
 		})
 	}
 
-	// updatePositions(): void {
-	// 	this.game.paddle1.pos.x = 50;
-	// 	this.game.paddle2.pos.x = this.game.engine.drawWidth - 50;
-
-	// 	// Atualiza UI, labels, etc.
-	// 	this.game.scoreLabel.pos.x = this.game.engine.drawWidth / 2;
-	// 	this.game.scoreLabel.pos.y = 50;
-	// }
-
-	// disconnected(): void{
-	// 	if (!this.game.desconnectedLabel)
-	// 		this.game.desconnectedLabel = new MyLabel("Disconnected", this.game.engine.drawWidth / 2, this.game.engine.drawHeight / 2, this.game.font);
-
-	// 	if (gameState.connected && gameState.opponentConnected && this.game.engine.currentScene.actors.includes(this.game.desconnectedLabel))
-	// 		this.game.engine.currentScene.remove(this.game.desconnectedLabel);
-	// 	else if ((!gameState.connected || !gameState.opponentConnected) && !this.game.engine.currentScene.actors.includes(this.game.desconnectedLabel))
-	// 		this.game.engine.add(this.game.desconnectedLabel);
-	// }
-
-	// countTime(): void {
-	// 	if (!gameState.allOk) return;
-
-	// 	this.game.timeLabel.text = gameState.timer;
-	// }
-
-	// drawUi(): void {
-	// 	const textY: number = 20;
-
-	// 	const timerFont = new ex.Font({
-	// 		family: 'Impact',
-	// 		size: this.game.font.size * 0.6,
-	// 		color: ex.Color.White,
-	// 		textAlign: ex.TextAlign.Center
-	// 	})
-
-	// 	this.game.timeLabel = new ex.Label({
-	// 		text: gameState.timer,
-	// 		font: timerFont,
-	// 		pos: ex.vec(this.game.engine.drawWidth / 2, textY + this.game.font.size + 10),
-	// 	})
-	// 	this.game.scoreLabel = new ex.Label({
-	// 		text: `${score[1]?.name} - ${score[2]?.name}`,
-	// 		font: this.game.font,
-	// 		pos: ex.vec(this.game.engine.drawWidth / 2, textY),
-	// 	})
-
-	// 	this.height = this.game.timeLabel.pos.y + timerFont.size + 10;
-	// 	const middleLine = new MidleLine(this.game.engine.drawWidth / 2, this.height, 5, this.game.engine.drawHeight - (textY + this.game.font.size + 30));
-
-
-	// 	const player1 = new ex.Label({
-	// 		text: `${score[1]?.name}`,
-	// 		font: this.game.font,
-	// 		color: ex.Color.White,
-	// 		pos: ex.vec(this.game.engine.drawWidth * .2, textY),
-	// 	})
-	// 	const player2 = new ex.Label({
-	// 		text: `${score[2]?.name}`,
-	// 		font: this.game.font,
-	// 		color: ex.Color.White,
-	// 		pos: ex.vec(this.game.engine.drawWidth * .8, textY),
-	// 	})
-
-	// 	this.game.engine.add(middleLine);
-	// 	this.game.engine.add(player1);
-	// 	this.game.engine.add(player2);
-	// 	this.game.engine.add(this.game.scoreLabel);
-	// 	this.game.engine.add(this.game.timeLabel);
-	// }
-
-	// drawPlayers(): void{
-	// 	this.game.paddle1 = new Paddle(50, this.game.engine.drawHeight / 2, 1, this.height);
-	// 	this.game.paddle2 = new Paddle(this.game.engine.drawWidth - 50, this.game.engine.drawHeight / 2, 2, this.height);
-
-	// 	this.game.engine.add(this.game.paddle1);
-	// 	this.game.engine.add(this.game.paddle2);
-	// }
-
-	// ballReset():void {
-	// 	if (gameState.ballInGame) return;
-
-	// 	const ball = new Ball(this.game.engine.drawWidth / 2, this.game.engine.drawHeight / 2, this.height);
-	// 	this.game.engine.add(ball);
-	// 	gameState.ballInGame = true;
-	// 	gameState.gameStarted = true;
-	// }
-
 	start(): void {
 		this.game.engine.start();
 	}
-
-	// endMatch():void {
-	// 	if (Object.values(score).every(s => s.score < this.game.maxScore)) return;
-
-	// 	const winner = Object.values(score).find(s => s.score >= this.game.maxScore)?.name;	
-	// 	const winnerLabel = new MyLabel(`${winner} wins!`, this.game.engine.drawWidth / 2, this.game.engine.drawHeight / 2, this.game.font);
-	// 	gameState.gameEnd = true;
-	// 	notifyEnd(winner);
-	// 	this.game.engine.add(winnerLabel);
-	// 	this.game.engine.stop();
-	// }
 }

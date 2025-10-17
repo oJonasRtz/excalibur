@@ -18,8 +18,11 @@ function waitGameStart(): Promise<void> {
 	})
 }
 
-(async () => {
+export async function startGame() {
 	await waitGameStart();
 	const pong = new Pong();
 	pong.start();
-})();
+};
+
+//This will be called in front-end | erase this line after
+startGame();

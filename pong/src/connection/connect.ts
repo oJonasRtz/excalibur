@@ -6,11 +6,11 @@ export let socket: WebSocket | null = null;
 
 export function connectPlayer(): void {
 	const serverIp = "localhost";
-	socket = new WebSocket(`ws://${serverIp}:8080`);
+	socket = new WebSocket(`wss://${serverIp}:8443`);
 
 	socket.onopen = () => {
 		console.log('Connected to WebSocket server');
-		socket?.send(JSON.stringify({type: "connectPlayer", matchId: identity.matchId, name: identity.name, id: identity.id}));
+		socket?.send(JSON.stringify({type: "connectPlayer", matchId: identity.matchId, name: identity.name, id: identity.id, playerId: identity.playerId}));
 		gameState.connected = true;
 	}
 

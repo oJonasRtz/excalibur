@@ -24,6 +24,7 @@ export type InputType = {
 
 export type IdentityType = {
 	id: number;
+	playerId: number;
 	matchId: number;
 	name: string;
 }

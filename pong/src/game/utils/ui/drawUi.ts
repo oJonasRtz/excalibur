@@ -33,3 +33,8 @@ export function drawUi() {
 	addElements.call(this, [middleLine, player1, player2, this.game.scoreLabel, this.game.timeLabel]);
 }
   
+export function countTime() {
+	if (!gameState.allOk) return;
+
+	this.game.timeLabel.text = gameState.timer;
+}

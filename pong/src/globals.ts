@@ -19,6 +19,7 @@ export const movePaddles: Record<number, {up: boolean, down: boolean}> = {
 
 export const identity: IdentityType = {
 	id: 0,
+	playerId: Number(prompt("Enter your player ID")) || 1,
 	matchId: Number(prompt("Enter match ID")) || 1,
 	name: prompt("Enter your name: ") || "",
 };
@@ -35,7 +36,8 @@ export function setPos(side: number): void {
 	pos.rand = side;
 }
 
-export const RECONNECTION__DELAY: number = 1000;
+export const MAXSCORE: number = 11;
+export const RECONNECTION__DELAY: number = 10000; //10 seconds
 
 export const LANGUAGE =  "EN";
 

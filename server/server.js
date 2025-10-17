@@ -1,9 +1,10 @@
 import { WebSocketServer } from "ws";
-import { matches } from "./server.shared.js";
+import fs from "fs";
+import https from "https";
+import { matches, types } from "./server.shared.js";
 import { broadcast } from "./utils/broadcast.js";
 import { createMatch, removeMatch } from "./creates/createMatch.js";
 import { handleTypes } from "./handleMessages/handleTypes.js";
-
 
 //Matches de template para testes apagar futuramente
 createMatch({
@@ -16,14 +17,21 @@ createMatch({
 
 createMatch({
 	// id: 2,
-	type: "newMatch",
 	players: {
 		1: {id: 314, name: "Pikachu"},
 		2: {id: 271, name: "Eevee"}
 	}
 })
 
-const wss = new WebSocketServer({ port: 8080 });
+//port 8443 for tests with wss, change to 443  for production
+//.env nao esta funcionando ainda verificar futuramente
+const PORT = process.env.PORT || 8443;
+const HOST = process.env.HOST || 'localhost';
+const server = https.createServer({
+	key: fs.readFileSync('./ssl/server.key'),
+	cert: fs.readFileSync('./ssl/server.cert')
+});
+const wss = new WebSocketServer({ server });
 
 wss.on("connection", (ws) => {
 	ws.player = null;
@@ -52,7 +60,7 @@ wss.on("connection", (ws) => {
 		player.connected = false;
 		player.ws = null;
 
-		broadcast({type: "opponentConnection", connected: false}, key);
+		broadcast({type: types.OPPONENT_DISCONNECTED, connected: false}, key);
 		match.allConnected = false;
 
 		if (match.gameStarted && !match.gameEnded && Object.values(match.players).every(p => !p.connected)) {
@@ -63,5 +71,7 @@ wss.on("connection", (ws) => {
 	})
 });
 
-console.log("WebSocket server is running on ws://localhost:8080");
-console.log(`got matches: ${Object.keys(matches)}`);
+server.listen(PORT, () => {
+	console.log(`WebSocket server is running on wss://${HOST}:${PORT}`);
+	console.log(`got matches: ${Object.keys(matches)}`);
+});
