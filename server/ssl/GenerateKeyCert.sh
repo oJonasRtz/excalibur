@@ -1,4 +1,5 @@
-#!/bin//bash
+#!/bin/bash
+set -e
 
 # Gera a chave privada
 openssl genrsa -out server.key 2048

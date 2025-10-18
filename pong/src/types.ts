@@ -13,6 +13,7 @@ export type GameType = {
 	opponentConnected: boolean;
 	allOk: boolean;
 	timer: string;
+	latency: number;
 }
 
 export type InputType = {

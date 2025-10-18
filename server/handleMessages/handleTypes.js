@@ -1,6 +1,5 @@
 import { matches } from "../server.shared.js";
 import { handleLobby } from "./handleLobby.js";
-import { handleBallCollided } from "./handleBallCollided.js";
 import { handleConnect } from "./handleConnect.js";
 import { handleEndGame } from "./handleEndGame.js";
 import { handleInput } from "./handleInput.js";
@@ -14,7 +13,6 @@ const map = {
 	connectPlayer: handleConnect,
 	updateStats: handleUpdateStats,
 	endGame: handleEndGame,
-	ballCollided: handleBallCollided,
 	connectLobby: handleLobby,
 	newBall: handleNewBall,
 };

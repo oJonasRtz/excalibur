@@ -50,11 +50,11 @@ wss.on("connection", (ws) => {
 	ws.on("close", () => {
 		console.log("Connection closed");
 
-		const match = Object.values(matches).find(m => m && Object.values(m.players).some(p => p.ws === ws));
+		const match = matches[ws.player?.matchIndex] || Object.values(matches).find(m => m && Object.values(m.players).some(p => p.ws === ws));
 		if (!match) return;
-		const player = Object.values(match.players).find(p => p.ws === ws);
+		const player = ws.player || Object.values(match.players).find(p => p.ws === ws);
 		if (!player) return;
-		const key = Object.keys(matches).find(i => matches[i] && matches[i].id === match.id);
+		const key = player?.matchIndex || Object.keys(matches).find(i => matches[i] && matches[i].id === match.id);
 
 		console.log(`Player ${player.name} disconnected from match ${match.id}`);
 		player.connected = false;

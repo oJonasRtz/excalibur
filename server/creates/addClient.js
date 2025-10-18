@@ -1,6 +1,7 @@
 import { closeCodes, matches, types } from "../server.shared.js";
 import { broadcast } from "../utils/broadcast.js";
 import { startMatchTimer } from "../utils/matchTimer.js";
+import { sendMesage } from "../utils/send.js";
 import { sendError } from "../utils/sendError.js";
 
 const errorMessages = {
@@ -35,7 +36,8 @@ export function addClient(ws, data) {
 	player.ws = ws;
 	player.connected = true;
 	player.matchIndex = Object.keys(matches).find(index => matches[index].id === data.matchId);
-	player.ws.send(JSON.stringify({id: slot, type: types.CONNECT_PLAYER, matchId: data.matchId, side: Math.random()}));
+	// player.ws.send(JSON.stringify({id: slot, type: types.CONNECT_PLAYER, matchId: data.matchId, side: Math.random()}));
+	sendMesage(player.ws, {id: slot, type: types.CONNECT_PLAYER, matchId: data.matchId, side: Math.random()});
 	console.log(`Player ${player.name} connected to match ${matches[player.matchIndex].id}`);
 
 	//If both players are connected, start the game

@@ -1,5 +1,6 @@
 import { createMatch } from "../creates/createMatch.js";
 import { types } from "../server.shared.js";
+import { sendMesage } from "../utils/send.js";
 import { sendError } from "../utils/sendError.js";
 
 export function handleNewMatch(props) {
@@ -10,5 +11,6 @@ export function handleNewMatch(props) {
 		return;
 	}
 
-	props.ws.send(JSON.stringify({type: types.MATCH_CREATED, matchId: newMatch.id}));
+	// props.ws.send(JSON.stringify({type: types.MATCH_CREATED, matchId: newMatch.id}));
+	sendMesage(props.ws, {type: types.MATCH_CREATED, matchId: newMatch.id});
 }

@@ -1,3 +1,4 @@
+import { gameState } from "../../globals";
 import { handleBounce } from "./handleBounce";
 import { handleConnectPlayer } from "./handleConnectPlayer";
 import { handleInput } from "./handleInput";
@@ -24,5 +25,7 @@ export function handleType(data: any) {
 	const func = map[type as keyof typeof map];
 	if (!func) return;
 
+	gameState.latency = Date.now() - data.timestamp;
+	console.log(`Latency: ${gameState.latency} ms`);
 	func(data);
 }

@@ -11,6 +11,7 @@ export const gameState: GameType = {
 	opponentConnected: false,
 	allOk: false,
 	timer: "00:00",
+	latency: 0,
 };
 
 export const movePaddles: Record<number, {up: boolean, down: boolean}> = {

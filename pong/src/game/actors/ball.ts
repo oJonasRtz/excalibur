@@ -1,6 +1,6 @@
 import * as ex from 'excalibur';
 import { Paddle } from './paddle';
-import { ballPos, gameState, pos } from '../../globals';
+import { ballPos, gameState } from '../../globals';
 import { checkVerticalCollision } from '../../utils/collision';
 import { updateStats } from '../../connection/utils/getScore';
 import { BORDERSIZE } from '../utils/ui/drawUi';
