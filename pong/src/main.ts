@@ -18,7 +18,7 @@ function waitGameStart(): Promise<void> {
 	})
 }
 
-export async function startGame(playerId: number, matchId: number, name: string): Promise<void> {
+export async function startGame(playerId: number, matchId: number, name: string, gameMode: "online" | "local" | "single" = "online"): Promise<void> {
 	identity.playerId = playerId;
 	identity.matchId = matchId;
 	identity.name = name;

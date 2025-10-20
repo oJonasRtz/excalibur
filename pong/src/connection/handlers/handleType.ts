@@ -1,7 +1,9 @@
 import { gameState } from "../../globals";
 import { handleBounce } from "./handleBounce";
 import { handleConnectPlayer } from "./handleConnectPlayer";
+import { handleEndGame } from "./handleEndGame";
 import { handleInput } from "./handleInput";
+import { handleNewBall } from "./handleNewBall";
 import { handleOpponentConnection } from "./handleOpponentConnection";
 import { handleStart } from "./handleStart";
 import { handleTimer } from "./handleTimer";
@@ -17,6 +19,8 @@ const map: Record<string, Handler> = {
 	start: handleStart,
 	opponentConnection: handleOpponentConnection,
 	bounce: handleBounce,
+	newBall: handleNewBall,
+	endGame: handleEndGame,
 }
 
 export function handleType(data: any) {

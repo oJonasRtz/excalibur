@@ -32,25 +32,27 @@ export function createMatch(data) {
 		gameStarted: false,
 		gameEnded: false,
 		ball: {
-			speed: 0,
 			direction: { x: 0, y: 0 },
 			exists: false,
-			latency: 0,
 			interval: null,
+			lastBounce: null,
 		},
+		lastScorer: null, // "left" | "right" | null
 	}
 
-	for (let i = 1; i <= newMatch.maxPlayers; i++) {
-		newMatch.players[i] = {
-			id: data.players[i].id,
-			name: data.players[i].name,
-			score: 0,
-			connected: false,
-			notifyEnd: false,
-			ws: null,
-			notifyBallDeath: false,
-		}
-	}
+	Object.values(data.players).forEach((p, index) => {
+		const side = ((index + 1) % 2 === 0) ? "left" : "right";
+		newMatch.players[index + 1] = {
+				id: p.id,
+				name: p.name,
+				score: 0,
+				connected: false,
+				notifyEnd: false,
+				ws: null,
+				notifyBallDeath: false,
+				side: side,
+			};
+	});
 
 	matches[i] = newMatch;
 	console.log(`New match created with ID: ${newMatch.id}`);

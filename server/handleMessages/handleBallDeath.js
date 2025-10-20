@@ -1,26 +1,32 @@
+import { handleEndGame } from "./handleEndGame.js";
+
 export function handleBallDeath(props) {
+	const {match, data, player} = props;
 
-	//Wait for all players to notify ball death
-	props.match.players[props.data.id].notifyBallDeath = true;
-	if (Object.values(props.match.players).some(p => !p.notifyBallDeath)) return;
+	player.notifyBallDeath = true;
+	if (!Object.keys(match.players).every(p => match.players[p].notifyBallDeath)) return;
 
-	const left = props.data.scorerSide === "left";
-	const right = props.data.scorerSide === "right";
-	const ball = props.match.ball;
-
-	Object.assign(ball, {
-		exists: false,
-		speed: 0,
-		position: { x: 0, y: 0 },
+	// Reset notifyBallDeath for all players
+	Object.keys(match.players).forEach(p => {
+		match.players[p].notifyBallDeath = false;
 	});
 
-	clearInterval(ball.interval);
-	ball.interval = null;
+	let ball = match.ball;
+	ball.exists = false;
 
-	if (left) Object.values(props.match.players).forEach(p => (p.id & 1) === 1 && p.score++);
-	if (right) Object.values(props.match.players).forEach(p => (p.id & 1) === 0 && p.score++);
+	match.lastScorer = data.scorerSide;
+	Object.keys(match.players).forEach((key) => {
+		const p = match.players[key];
 
-	Object.values(props.match.players).forEach(p => p.notifyBallDeath = false);
+		if (p.side === data.scorerSide && p.score < match.maxScore)
+			p.score++;
+		
+		if (p.score >= match.maxScore) {
+			handleEndGame(props, p.name);
+			return;
+		}
+	});
 
-	console.log(`Ball death handled for match ${props.match.id}`);
+	console.log(`Ball death handled for match ${match.id}`);
+	console.log(`Score update: Left Player - ${match.players[1].score}, Right Player - ${match.players[2].score}`);
 }

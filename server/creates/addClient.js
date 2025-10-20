@@ -43,13 +43,17 @@ export function addClient(ws, data) {
 	//If both players are connected, start the game
 	if (Object.values(match.players).every(p => p.connected))
 	{
-		match.allConnected = true;
-		match.gameStarted = true;
 		const data = {type: types.START_GAME};
+		match.allConnected = true;
+
+		if (!match.gameStarted)
+		{
+			match.gameStarted = true;
+			console.log("Both players connected, game started");
+			match.matchStarted = Date.now();
+			startMatchTimer(match, player.matchIndex);
+		}
 		broadcast(data, player.matchIndex);
-		console.log("Both players connected, game started");
-		match.matchStarted = Date.now();
-		startMatchTimer(match, player.matchIndex);
 	}
 
 	return (player);

@@ -7,10 +7,10 @@ export function notifyBallDeath(scorerSide: 'left' | 'right'): void {
 	socket.send(JSON.stringify({
 		type: "ballDeath",
 		id: identity.id,
+		matchId: identity.matchId,
 		scorerSide: scorerSide,
 	}));
 
 	ballPos.x = 0;
 	ballPos.y = 0;
-	ballPos.speed = 0;
 }

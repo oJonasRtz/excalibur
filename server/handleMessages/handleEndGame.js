@@ -1,14 +1,15 @@
 import { removeMatch } from "../creates/createMatch.js";
 import { matches, types } from "../server.shared.js";
+import { broadcast } from "../utils/broadcast.js";
 import { getTime } from "../utils/getTime.js";
 
-export function handleEndGame(props) {
+export function handleEndGame(props, winner) {
 	// if (!backend.connected) return;
-	props.player.notifyEnd = true;
+	// props.player.notifyEnd = true;
 	props.match.gameEnded = true;
 
 	//Wait for both players to notify end
-	if (Object.values(props.match.players).some(p => !p.notifyEnd)) return;
+	// if (Object.values(props.match.players).some(p => !p.notifyEnd)) return;
 
 	const stats = {
 		type: types.END_GAME,
@@ -24,7 +25,7 @@ export function handleEndGame(props) {
 						id: player.id,
 						name: player.name,
 						score: player.score,
-						winner: props.data.winner === player.name,
+						winner: winner === player.name,
 					}
 				]
 			}),
@@ -43,6 +44,7 @@ export function handleEndGame(props) {
 	// backend.ws.send(JSON.stringify(stats));
 	console.log(`Sent match ${props.match.id} stats to backend`);
 	console.log(stats);
-	removeMatch(props.player.matchIndex);
+	// removeMatch(props.player.matchIndex);
 	console.log(`got matches: ${Object.keys(matches)}`);
+	broadcast({type: types.END_GAME}, props.player.matchIndex);
 }

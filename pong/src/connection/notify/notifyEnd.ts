@@ -4,5 +4,6 @@ import { socket } from "../connect";
 export function notifyEnd(winner: string): void {
 	if (!socket) return;
 
-	socket.send(JSON.stringify({type: "endGame", winner, matchId: identity.matchId}));
+	console.log(`[notifyEnd] Sending endGame notification: ${winner}`);
+	socket.send(JSON.stringify({type: "endGame", winner, matchId: identity.matchId, id: identity.id}));
 }

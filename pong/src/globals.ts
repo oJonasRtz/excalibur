@@ -47,5 +47,5 @@ export const BACKGROUND =  Object.freeze({
 export const ballPos: Vector = {
 	x: 0,
 	y: 0,
-	speed: 0,
+	startTime: 0,
 }

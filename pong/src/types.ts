@@ -1,8 +1,7 @@
 export type Vector = {
 	x: number;
 	y: number;
-	z?: number;
-	speed: number;
+	startTime: number;
 }
 
 export type GameType = {

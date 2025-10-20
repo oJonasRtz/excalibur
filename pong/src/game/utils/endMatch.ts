@@ -1,4 +1,3 @@
-import { notifyEnd } from "../../connection/notify/notifyEnd";
 import { gameState, LANGUAGE, score, texts } from "../../globals";
 import { MyLabel } from "../../utils/myLabel";
 
@@ -8,7 +7,7 @@ export function endMatch() {
 	const winner = Object.values(score).find(s => s.score >= this.game.maxScore)?.name;	
 	const winnerLabel = new MyLabel(`${winner} ${texts[LANGUAGE].win}`, this.game.engine.drawWidth / 2, this.game.engine.drawHeight / 2, this.game.font);
 	gameState.gameEnd = true;
-	notifyEnd(winner as string);
+	// notifyEnd(winner as string);
 	this.game.engine.add(winnerLabel);
 	this.game.engine.stop();
 }

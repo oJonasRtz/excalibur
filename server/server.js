@@ -37,8 +37,6 @@ wss.on("connection", (ws) => {
 	ws.player = null;
 	ws.on("message", (message) => {
 		const data = JSON.parse(message);
-		
-		if (ws.player) console.log(`Received message from ${ws.player.name}: ${data}`);
 
 		handleTypes(ws.player, data, ws);
 	})
