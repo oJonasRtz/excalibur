@@ -5,7 +5,7 @@ import { handleType } from "./handlers/handleType";
 export let socket: WebSocket | null = null;
 
 export function connectPlayer(): void {
-	const serverIp = "localhost";
+	const serverIp = "10.12.1.6";
 	socket = new WebSocket(`wss://${serverIp}:8443`);
 
 	socket.onopen = () => {
@@ -38,4 +38,13 @@ export function connectPlayer(): void {
 		console.log(`Trying to reconnect in ${RECONNECTION__DELAY / 1000} seconds...`);
 		setTimeout(connectPlayer, RECONNECTION__DELAY);
 	}
+}
+
+export function disconnectPlayer(reason: string): void {
+	if (!socket) return;
+
+	console.log(`[disconnectPlayer] Disconnecting from server: ${reason}`);
+	socket.close(1000, reason);
+	socket = null;
+	gameState.connected = false;
 }

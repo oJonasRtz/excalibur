@@ -1,5 +1,6 @@
 import { gameState, LANGUAGE, score, texts } from "../../globals";
 import { MyLabel } from "../../utils/myLabel";
+import { disconnectPlayer } from "../../connection/connect";
 
 export function endMatch() {
 	if (Object.values(score).every(s => s.score < this.game.maxScore)) return;

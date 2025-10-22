@@ -40,6 +40,10 @@ export function addClient(ws, data) {
 	sendMesage(player.ws, {id: slot, type: types.CONNECT_PLAYER, matchId: data.matchId, side: Math.random()});
 	console.log(`Player ${player.name} connected to match ${matches[player.matchIndex].id}`);
 
+	if (match.timeout)
+		clearTimeout(match.timeout);
+	match.timeout = null;
+
 	//If both players are connected, start the game
 	if (Object.values(match.players).every(p => p.connected))
 	{

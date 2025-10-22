@@ -1,16 +1,22 @@
-import { createMatch } from "../creates/createMatch.js";
-import { types } from "../server.shared.js";
-import { sendMesage } from "../utils/send.js";
+import { createMatch, removeMatch } from "../creates/createMatch.js";
+import { PERMISSION_ERROR } from "../lobby.class.js";
+import { lobby, types } from "../server.shared.js";
 import { sendError } from "../utils/sendError.js";
 
 export function handleNewMatch(props) {
-	const newMatch = createMatch(props.data);
-	
-	if (!newMatch) {
-		sendError(props.ws, "Match could not be created");
+	const { data, ws } = props;
+
+	if (!data || !lobby.checkPermissions(ws)) {
+		sendError(ws, PERMISSION_ERROR);
 		return;
 	}
 
-	// props.ws.send(JSON.stringify({type: types.MATCH_CREATED, matchId: newMatch.id}));
-	sendMesage(props.ws, {type: types.MATCH_CREATED, matchId: newMatch.id});
-}
+	const newMatch = createMatch(data);
+
+	if (!newMatch) {
+		lobby.send({type: types.ERROR, reason: types.MATCH_FULL});
+		return;
+	}
+
+	lobby.send({type: types.MATCH_CREATED, matchId: newMatch.id});
+} 

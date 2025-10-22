@@ -4,7 +4,7 @@ import { MyLabel } from "./myLabel";
 let disconnectedLabel: MyLabel;
 
 export function waitOpponentConnect(engine: ex.Engine, font: ex.Font): void {
-	if (!gameState.connected) return;
+	if (!gameState.connected || gameState.gameEnd) return;
 
 	if (!disconnectedLabel)
 		disconnectedLabel = new MyLabel(texts[LANGUAGE].waitOpponent, engine.drawWidth / 2, engine.drawHeight / 2, font);

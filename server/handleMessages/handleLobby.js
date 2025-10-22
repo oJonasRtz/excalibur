@@ -1,10 +1,12 @@
-import { lobby, types } from "../server.shared.js";
-import { sendMesage } from "../utils/send.js";
+import { lobby } from '../server.shared.js';
+/*
+	data expected:
+	{
+		type: "lobby"
+		pass: string,
+	}
+*/
 
 export function handleLobby(props) {
-	lobby.ws = props.ws;
-	lobby.connected = true;
-	console.log("lobby connected");
-	// props.ws.send(JSON.stringify({type: types.LOBBY_CONNECTED, id: lobby.id}));
-	sendMesage(props.ws, {type: types.LOBBY_CONNECTED, id: lobby.id});
+	lobby.connect(props.ws, props.data);
 }

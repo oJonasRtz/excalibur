@@ -1,4 +1,5 @@
 import { closeCodes, matches } from "../server.shared.js";
+import { inactivityDisconnect } from "../utils/inativityDisconnect.js";
 import { stopMatchTimer } from "../utils/matchTimer.js";
 import { createId } from "./createId.js";
 
@@ -31,6 +32,7 @@ export function createMatch(data) {
 		maxScore: data?.maxScore || DEFAULT.SCORE,
 		gameStarted: false,
 		gameEnded: false,
+		timeout: null,
 		ball: {
 			direction: { x: 0, y: 0 },
 			exists: false,
@@ -56,14 +58,19 @@ export function createMatch(data) {
 
 	matches[i] = newMatch;
 	console.log(`New match created with ID: ${newMatch.id}`);
+	inactivityDisconnect(i, 5);
 	return (newMatch);
 }
 
 export function removeMatch(index, force = false) {
 	const match = matches[index];
+	if (!match) return;
 
-	if (!force && match && Object.values(match.players).every(p => !p.notifyEnd) && !match.gameEnded) return;
+	if (!force && Object.values(match.players).every(p => !p.notifyEnd) && !match.gameEnded) return;
 
+	if (match.timeout)
+		clearTimeout(match.timeout);
+	match.timeout = null;
 	stopMatchTimer(match);
 	if (!force) {
 		Object.values(matches[index].players).forEach(p => {
@@ -78,4 +85,5 @@ export function removeMatch(index, force = false) {
 	if (!freeIndexes.includes(Number(index)))
 		freeIndexes.push(Number(index));
 	console.log(`Match ${index} removed`);
+	console.log(`got matches: ${Object.keys(matches)}`);
 }

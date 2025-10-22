@@ -1,10 +1,12 @@
 import { WebSocketServer } from "ws";
 import fs from "fs";
 import https from "https";
-import { matches, types } from "./server.shared.js";
+import { DISCONNECT_TIMEOUT, lobby, matches, types } from "./server.shared.js";
 import { broadcast } from "./utils/broadcast.js";
 import { createMatch, removeMatch } from "./creates/createMatch.js";
 import { handleTypes } from "./handleMessages/handleTypes.js";
+import 'dotenv/config';
+import { inactivityDisconnect } from "./utils/inativityDisconnect.js";
 
 //Matches de template para testes apagar futuramente
 createMatch({
@@ -46,6 +48,11 @@ wss.on("connection", (ws) => {
 	});
 
 	ws.on("close", () => {
+		if (lobby.isConnected(ws)) {
+			lobby.disconnect();
+			return;
+		}
+
 		console.log("Connection closed");
 
 		const match = matches[ws.player?.matchIndex] || Object.values(matches).find(m => m && Object.values(m.players).some(p => p.ws === ws));
@@ -61,11 +68,8 @@ wss.on("connection", (ws) => {
 		broadcast({type: types.OPPONENT_DISCONNECTED, connected: false}, key);
 		match.allConnected = false;
 
-		if (match.gameStarted && !match.gameEnded && Object.values(match.players).every(p => !p.connected)) {
-			console.log(`All players disconnected, removing match ${match.id}`);
-			removeMatch(key, true);
-			//Notify matchMaking after this
-		}
+		if (match.gameStarted && !match.gameEnded && Object.values(match.players).every(p => !p.connected))
+			inactivityDisconnect(key);
 	})
 });
 

@@ -4,6 +4,7 @@ import { MyLabel } from "../../utils/myLabel";
 let label: MyLabel;
 
 export function disconnected(): void {
+	if (gameState.gameEnd) return;
 	if (!label)
 		label = new MyLabel(texts[LANGUAGE].disconnect, this.game.engine.drawWidth / 2, this.game.engine.drawHeight / 2, this.game.font);
 
