@@ -19,6 +19,7 @@ export const types = {
 	LOBBY_ERROR: "lobbyError",
 	LOBBY_CONNECTED: "lobbyConnected",
 	TIMEOUT_REMOVE: "timeoutRemove",
+	PING: "ping",
 }
 
 export const closeCodes = {

@@ -41,6 +41,9 @@ export class match {
 					ws: null,
 					notifyBallDeath: false,
 					side: side,
+					tick: 60000 / 60,
+					pingInterval: null,
+					direction: {up: false, down: false},
 			};
 		})
 
@@ -71,20 +74,6 @@ export class match {
 	set gameEnded(value) { this.#gameEnded = value; }
 	set timeout(value) { this.#timeout = value; }
 
-
-
-	inactivityDisconnect(minutes = 1) {
-		const timeout = DISCONNECT_TIMEOUT * minutes;
-
-		if (!this.#timeout) {
-			this.#timeout = setTimeout(() => {
-				console.log(`Match ${this.#id} removed due to inactivity`);
-				removeMatch(index, true);
-				if (lobby.isConnected())
-					lobby.send({type: types.TIMEOUT_REMOVE, matchId: this.#id});
-			}, timeout);
-		}
-	}
 
 	// --- Match Timer Methods ---
 	startTimer() {
@@ -119,12 +108,62 @@ export class match {
 				sendMesage(p.ws, message);
 	}
 
+	inactivityDisconnect(minutes = 1) {
+		const timeout = DISCONNECT_TIMEOUT * minutes;
+
+		if (!this.#timeout) {
+			this.#timeout = setTimeout(() => {
+				console.log(`Match ${this.#id} removed due to inactivity`);
+				removeMatch(index, true);
+				if (lobby.isConnected())
+					lobby.send({type: types.TIMEOUT_REMOVE, matchId: this.#id});
+			}, timeout);
+		}
+	}
+
+	// --- Ping ---
+	setTick(id, delta) {
+		if (this.#players[id])
+			this.#players[id].tick = delta;
+		
+		if (this.#players[id].pingInterval)
+			clearInterval(this.#players[id].pingInterval);
+		this.#players[id].pingInterval = null;
+		this.#ping();
+	}
+	#ping(id) {
+		if (this.#players[id].pingInterval) return;
+	
+		const input = Object.keys(this.#players).reduce((acc, id) => {
+			acc[id] = this.#players[id].direction;
+			return acc;
+		}, {});
+		const message = {
+			type: types.PING,
+			input,
+		}
+
+		this.#players[id].pingInterval = setInterval(() => {
+			if (this.#players[id].ws && this.#players[id].ws.readyState === this.#players[id].ws.OPEN)
+				sendMesage(this.#players[id].ws, message);
+		}, this.#players[id].tick);	
+	}
+	#stopPing() {
+		Object.values(this.#players).forEach(p => {
+			if (p.pingInterval) {
+				clearInterval(p.pingInterval);
+				p.pingInterval = null;
+			}
+		});
+	}
+
 	// --- Cleanup ---
 	destroy() {
 		if (this.#timeout)
 			clearTimeout(this.#timeout);
 		this.#timeout = null;
 		this.stopTimer();
+		this.#stopPing();
 		Object.values(this.#players).forEach(p => {
 			if (p.ws && p.ws.readyState === p.ws.OPEN)
 				p.ws.close(1000, "Match ended");
