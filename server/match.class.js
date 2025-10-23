@@ -125,5 +125,9 @@ export class match {
 			clearTimeout(this.#timeout);
 		this.#timeout = null;
 		this.stopTimer();
+		Object.values(this.#players).forEach(p => {
+			if (p.ws && p.ws.readyState === p.ws.OPEN)
+				p.ws.close(1000, "Match ended");
+		});
 	}
 }
