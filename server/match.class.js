@@ -1,20 +1,25 @@
-import { createId } from "./creates/createId";
-import { DISCONNECT_TIMEOUT, types } from "./server.shared";
-import { sendMesage } from "./utils/send";
+import { createId } from "./creates/createId.js";
+import { removeMatch } from "./creates/createMatch.js";
+import { DISCONNECT_TIMEOUT, lobby, matches, types } from "./server.shared.js";
+import { getTime } from "./utils/getTime.js";
+import { sendMesage } from "./utils/send.js";
 
 const INTERVALS = 1000;
 
-export class match {
+export class Match {
 	#allConnected = false;
 	#players = {};
 	#id = 0;
-	#matchStarted = false;
+	#index = -1;
+	#matchStarted = null;
+	#gameStarted = false;
 	#matchDuration = 0;
 	#timer = null;
 	#maxPlayers = 2;
 	#maxScore = 11;
 	#gameEnded = false;
 	#timeout = null;
+	#timeFormated = "00:00";
 	#ball = {
 		direction: { x: 0, y: 0 },
 		exists: false,
@@ -23,7 +28,7 @@ export class match {
 	};
 	#lastScorer = null; // "left" | "right" | null
 
-	constructor (data) {
+	constructor (data, index) {
 		if (!data.players[1] || !data.players[2]) {
 			throw new Error("At least two players are required to create a match.");
 		}
@@ -32,7 +37,7 @@ export class match {
 		this.#maxScore = data?.maxScore || this.#maxScore;
 		Object.values(data.players).forEach((p, i) => {
 			const side = ((i + 1) % 2 === 0) ? "left" : "right";
-			this.players[i + 1] = {
+			this.#players[i + 1] = {
 					id: p.id,
 					name: p.name,
 					score: 0,
@@ -46,37 +51,14 @@ export class match {
 					direction: {up: false, down: false},
 			};
 		})
+		this.#index = index;
 
 		console.log(`New match created with ID: ${this.#id}`);
+		this.#inactivityDisconnect(5);
 	}
-
-	// --- Getters ---
-	get allConnected() { return this.#allConnected; }
-	get players() { return this.#players; }
-	get id() { return this.#id; }
-	get matchStarted() { return this.#matchStarted; }
-	get matchDuration() { return this.#matchDuration; }
-	get timer() { return this.#timer; }
-	get maxPlayers() { return this.#maxPlayers; }
-	get maxScore() { return this.#maxScore; }
-	get gameEnded() { return this.#gameEnded; }
-	get timeout() { return this.#timeout; }
-	get ball() { return this.#ball; }
-	get lastScorer() { return this.#lastScorer; }
-	getPlayer(n) {
-		return this.#players[n];
-	}
-
-	// --- Setters ---
-	set allConnected(value) { this.#allConnected = value; }
-	set lastScorer(value) { this.#lastScorer = value; }
-	set matchStarted(value) { this.#matchStarted = value; }
-	set gameEnded(value) { this.#gameEnded = value; }
-	set timeout(value) { this.#timeout = value; }
-
 
 	// --- Match Timer Methods ---
-	startTimer() {
+	#startTimer() {
 		if (!this.#matchStarted || this.#timer) return;
 
 		this.#timer = setInterval(() => {
@@ -85,40 +67,88 @@ export class match {
 			const minute = Math.floor(this.#matchDuration / 60000);
 			const second = Math.floor((this.#matchDuration % 60000) / 1000);
 			const formatted = `${minute}:${second.toString().padStart(2, '0')}`;
-			const message = {
-				type: types.TIMER,
-				time: formatted,
-			};
 
-			this.broadcast(message);
+			this.#timeFormated = formatted;
 		}, INTERVALS);
 	}
-	stopTimer() {
+	#stopTimer() {
 		if (!this.#timer) return;
 		clearInterval(this.#timer);
 		this.#timer = null;
 	}
 
 	// --- Utils ---
-	broadcast(message) {
+	#broadcast(message, wsToSkip = null) {
 		if (!this.#allConnected) return;
 
 		for (const p of Object.values(this.#players))
-			if (p.ws && p.ws.readyState === p.ws.OPEN)
+			if (p.ws && p.ws.readyState === p.ws.OPEN && p.ws !== wsToSkip)
 				sendMesage(p.ws, message);
 	}
-
-	inactivityDisconnect(minutes = 1) {
+	#inactivityDisconnect(minutes = 1) {
 		const timeout = DISCONNECT_TIMEOUT * minutes;
 
 		if (!this.#timeout) {
 			this.#timeout = setTimeout(() => {
 				console.log(`Match ${this.#id} removed due to inactivity`);
-				removeMatch(index, true);
+				removeMatch(this.#index, true);
 				if (lobby.isConnected())
 					lobby.send({type: types.TIMEOUT_REMOVE, matchId: this.#id});
 			}, timeout);
 		}
+	}
+
+	// --- Player Connection ---
+	connectPlayer(playerId, ws, name) {
+		const slot = Object.keys(this.#players).find(p => this.#players[p].name === name && this.#players[p].id === playerId);
+
+		if (!slot)
+			throw new Error("NOTFOUND");
+
+		const player = this.#players[slot];
+		if (player.connected && player.ws?.readyState === player.ws.OPEN)
+			throw new Error("DUPLICATE");
+
+		player.ws = ws;
+		player.connected = true;
+		sendMesage(player.ws, {id: slot, type: types.CONNECT_PLAYER, matchId: data.matchId, side: Math.random()});
+
+
+		// Clear inactivity timeout
+		if (this.#timeout) {
+			clearTimeout(this.#timeout);
+			this.#timeout = null;
+		}
+
+		// Check if all players are connected to start the game
+		if (Object.values(this.#players).every(p => p.connected)) {
+			const data = {type: types.START_GAME};
+			this.#allConnected = true;
+
+			if (!this.#matchStarted) {
+				this.#matchStarted = Date.now();
+				this.#gameStarted = true;
+				this.#startTimer();
+			}
+			this.#broadcast(data);
+		}
+
+		this.#broadcast({type: types.OPPONENT_CONNECTED, connected: true}, ws);
+		return { matchIndex: this.#index};
+	}
+	disconnectPlayer(ws) {
+		const player = Object.values(this.#players).find(p => p.ws === ws);
+		if (!player) return;
+
+		console.log(`Player ${player.name} disconnected from match ${this.#id}`);
+		player.connected = false;
+		player.ws = null;
+
+		this.#allConnected = false;
+		this.#broadcast({type: types.OPPONENT_DISCONNECTED, connected: false});
+
+		if (this.#gameStarted && !this.#gameEnded && Object.values(this.#players).every(p => !p.connected))
+			this.#inactivityDisconnect(5);
 	}
 
 	// --- Ping ---
@@ -129,7 +159,7 @@ export class match {
 		if (this.#players[id].pingInterval)
 			clearInterval(this.#players[id].pingInterval);
 		this.#players[id].pingInterval = null;
-		this.#ping();
+		this.#ping(id);
 	}
 	#ping(id) {
 		if (this.#players[id].pingInterval) return;
@@ -138,9 +168,20 @@ export class match {
 			acc[id] = this.#players[id].direction;
 			return acc;
 		}, {});
+		const players = Object.keys(this.#players).reduce((acc, id) => {
+			acc[id] = {
+				name: this.#players[id].name,
+				score: this.#players[id].score,
+				connected: this.#players[id].connected,
+			};
+			return acc;
+		}, {});
 		const message = {
 			type: types.PING,
 			input,
+			time: this.#timeFormated,
+			players,
+			ballDirection: this.#ball.direction,
 		}
 
 		this.#players[id].pingInterval = setInterval(() => {
@@ -157,16 +198,64 @@ export class match {
 		});
 	}
 
+	endGame(winner) {
+		this.#gameEnded = true;
+		this.#stopTimer();
+
+		const stats = {
+			type: types.END_GAME,
+			matchId: this.#id,
+			players: Object.fromEntries(
+				Array.from({length: this.#maxPlayers}, (_, i) => {
+					const p = i + 1;
+					const player = this.#players[p];
+
+					return [
+						p,
+						{
+							id: player.id,
+							name: player.name,
+							score: player.score,
+							winner: winner === player.name,
+						}
+					]
+				})
+			),
+			time: {
+				duration: this.#timeFormated,
+				startedAt: (() => {
+					const time = getTime(this.#matchStarted);
+					return `${time.day}/${time.month}/${time.year} | ${time.hour}:${time.minute}:${time.second}`;
+				})(),
+			}
+		}
+
+		console.log(`Sent match ${this.#id} stats to backend`);
+		lobby.send(stats);
+		console.log(stats);
+		this.#broadcast({type: types.END_GAME});
+	}
+
+	input(id, direction) {
+		const p = this.#players[id];
+		if (!p) return;
+
+		p.direction.up = direction.up;
+		p.direction.down = direction.down;
+	}
+
 	// --- Cleanup ---
 	destroy() {
 		if (this.#timeout)
 			clearTimeout(this.#timeout);
 		this.#timeout = null;
-		this.stopTimer();
+		this.#stopTimer();
 		this.#stopPing();
 		Object.values(this.#players).forEach(p => {
 			if (p.ws && p.ws.readyState === p.ws.OPEN)
 				p.ws.close(1000, "Match ended");
 		});
+
+		delete matches[this.#index];
 	}
 }

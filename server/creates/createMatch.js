@@ -1,7 +1,6 @@
-import { closeCodes, matches } from "../server.shared.js";
-import { inactivityDisconnect } from "../utils/inativityDisconnect.js";
-import { stopMatchTimer } from "../utils/matchTimer.js";
-import { createId } from "./createId.js";
+import { Match } from "../match.class.js";
+import { matches } from "../server.shared.js";
+
 
 //Default values
 const DEFAULT = Object.freeze({
@@ -21,66 +20,27 @@ export function createMatch(data) {
 		return (null);
 	}
 
-	const newMatch = {
-		allConnected: false,
-		players: {},
-		id: createId(data.players[1].id, data.players[2].id),
-		matchStarted: null,
-		matchDuration: 0,
-		timer: null,
-		maxPlayers: data?.maxPlayers || DEFAULT.PLAYERS,
-		maxScore: data?.maxScore || DEFAULT.SCORE,
-		gameStarted: false,
-		gameEnded: false,
-		timeout: null,
-		ball: {
-			direction: { x: 0, y: 0 },
-			exists: false,
-			interval: null,
-			lastBounce: null,
-		},
-		lastScorer: null, // "left" | "right" | null
+	try {
+		const newMatch = new Match(data, i);
+		matches[i] = newMatch;
+		console.log(`New match created with ID: ${newMatch.id}`);
+		return (newMatch);
+	} catch (error) {
+		console.error("Error creating match:", error.message);
+		return (null);
 	}
-
-	Object.values(data.players).forEach((p, index) => {
-		const side = ((index + 1) % 2 === 0) ? "left" : "right";
-		newMatch.players[index + 1] = {
-				id: p.id,
-				name: p.name,
-				score: 0,
-				connected: false,
-				notifyEnd: false,
-				ws: null,
-				notifyBallDeath: false,
-				side: side,
-			};
-	});
-
-	matches[i] = newMatch;
-	console.log(`New match created with ID: ${newMatch.id}`);
-	inactivityDisconnect(i, 5);
-	return (newMatch);
 }
 
 export function removeMatch(index, force = false) {
 	const match = matches[index];
-	if (!match) return;
 
-	if (!force && Object.values(match.players).every(p => !p.notifyEnd) && !match.gameEnded) return;
+	const stop = !match
+				|| (!force && Object.values(match.players).every(p => !p.notifyEnd) && !match.gameEnded);
 
-	if (match.timeout)
-		clearTimeout(match.timeout);
-	match.timeout = null;
-	stopMatchTimer(match);
-	if (!force) {
-		Object.values(matches[index].players).forEach(p => {
-			if (p.ws.readyState === p.ws.OPEN) {
-				p.ws.close(closeCodes.NORMAL, "Match ended");
-			}
-		});
-	}
+	if (stop) return;
 
-	delete matches[index];
+	match.destroy();
+
 	//No double include on freeIndexes
 	if (!freeIndexes.includes(Number(index)))
 		freeIndexes.push(Number(index));

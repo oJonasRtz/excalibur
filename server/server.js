@@ -56,21 +56,9 @@ wss.on("connection", (ws) => {
 		console.log("Connection closed");
 
 		const match = matches[ws.player?.matchIndex] || Object.values(matches).find(m => m && Object.values(m.players).some(p => p.ws === ws));
-		if (!match) return;
-		const player = ws.player || Object.values(match.players).find(p => p.ws === ws);
-		if (!player) return;
-		const key = player?.matchIndex || Object.keys(matches).find(i => matches[i] && matches[i].id === match.id);
-
-		console.log(`Player ${player.name} disconnected from match ${match.id}`);
-		player.connected = false;
-		player.ws = null;
-
-		broadcast({type: types.OPPONENT_DISCONNECTED, connected: false}, key);
-		match.allConnected = false;
-
-		if (match.gameStarted && !match.gameEnded && Object.values(match.players).every(p => !p.connected))
-			inactivityDisconnect(key);
-	})
+		if (match)
+			match.disconnectPlayer(ws);
+	});
 });
 
 server.listen(PORT, () => {
