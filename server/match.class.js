@@ -4,7 +4,8 @@ import { DISCONNECT_TIMEOUT, lobby, matches, types } from "./server.shared.js";
 import { getTime } from "./utils/getTime.js";
 import { sendMesage } from "./utils/send.js";
 
-const INTERVALS = 1000;
+const INTERVALS = 1000; //1 sec
+const FPS = 60;
 
 export class Match {
 	#allConnected = false;
@@ -46,7 +47,7 @@ export class Match {
 					ws: null,
 					notifyBallDeath: false,
 					side: side,
-					tick: 60000 / 60,
+					tick: INTERVALS / FPS,
 					pingInterval: null,
 					direction: {up: false, down: false},
 			};
@@ -65,7 +66,7 @@ export class Match {
 			this.#matchDuration = Date.now() - this.#matchStarted;
 
 			const minute = Math.floor(this.#matchDuration / 60000);
-			const second = Math.floor((this.#matchDuration % 60000) / 1000);
+			const second = Math.floor((this.#matchDuration % 60000) / INTERVALS);
 			const formatted = `${minute}:${second.toString().padStart(2, '0')}`;
 
 			this.#timeFormated = formatted;
@@ -131,6 +132,7 @@ export class Match {
 				this.#startTimer();
 			}
 			this.#broadcast(data);
+			this.setTick(playerId);
 		}
 
 		this.#broadcast({type: types.OPPONENT_CONNECTED, connected: true}, ws);
@@ -152,7 +154,7 @@ export class Match {
 	}
 
 	// --- Ping ---
-	setTick(id, delta) {
+	setTick(id, delta = this.#players[id]?.tick) {
 		if (this.#players[id])
 			this.#players[id].tick = delta;
 		

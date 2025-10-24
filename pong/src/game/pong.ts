@@ -9,6 +9,8 @@ import { ballReset } from './utils/ballReset';
 import { disconnected } from './utils/disconnected';
 import { endMatch } from './utils/endMatch';
 
+const FPS: number = 60;
+
 type PongType = {
 	engine?: ex.Engine;
 	timeLabel?: ex.Label;
@@ -34,7 +36,9 @@ export class Pong {
 	};
 
 	constructor() {
-		this.game.engine = new ex.Engine({ ...BACKGROUND });
+		this.game.engine = new ex.Engine({ ...BACKGROUND});
+		this.game.engine.clock.targetElapsedTime = 1000 / FPS;
+
 
 		const fontSize = Math.min(this.game.engine.drawWidth, this.game.engine.drawHeight) * 0.05;
 		this.game.font = new ex.Font({
@@ -48,11 +52,11 @@ export class Pong {
 		drawPlayers.call(this);
 
 		//Global listeners - roda a cada frame
-		this.game.engine.on('preupdate', () => {
+		this.game.engine.on('preupdate', (_, delta) => {
 
 			//Var to lock the game
 			gameState.allOk = gameState.connected && gameState.opponentConnected;
-
+			gameState.delta = delta;
 			//this is not working already its just an idea for future improvements
 			//change the border color according to the score
 			if (Object.values(score).some(s => s.score > this.game.maxScore / 2)) this.game.border.color = ex.Color.Purple;

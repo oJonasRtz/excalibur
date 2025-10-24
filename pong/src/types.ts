@@ -13,6 +13,7 @@ export type GameType = {
 	allOk: boolean;
 	timer: string;
 	latency: number;
+	delta: number;
 }
 
 export type InputType = {

@@ -12,6 +12,7 @@ export const gameState: GameType = {
 	allOk: false,
 	timer: "00:00",
 	latency: 0,
+	delta: 60000 / 60,
 };
 
 export const movePaddles: Record<number, {up: boolean, down: boolean}> = {
