@@ -23,7 +23,6 @@ export function createMatch(data) {
 	try {
 		const newMatch = new Match(data, i);
 		matches[i] = newMatch;
-		console.log(`New match created with ID: ${newMatch.id}`);
 		return (newMatch);
 	} catch (error) {
 		console.error("Error creating match:", error.message);
