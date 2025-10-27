@@ -15,8 +15,8 @@ function prompt() {
 		switch (line.trim()) {
 			case 'newMatch':
 				socket?.send(JSON.stringify({id: ID, type: "newMatch", players: {
-					1: {name: "Raichu", id: 16536},
-					2: {name: "Pikachu", id: 16537}
+					1: {name: "Raltz", id: 4002},
+					2: {name: "Kirlia", id: 8922}
 				}}));
 				break;
 			case 'removeMatch':

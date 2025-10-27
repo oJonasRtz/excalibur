@@ -112,7 +112,7 @@ export class Match {
 
 		player.ws = ws;
 		player.connected = true;
-		sendMesage(player.ws, {id: slot, type: types.CONNECT_PLAYER, matchId: data.matchId, side: Math.random()});
+		sendMesage(player.ws, {id: slot, type: types.CONNECT_PLAYER, matchId: this.#id, side: Math.random()});
 
 		// Clear inactivity timeout
 		if (this.#timeout) {
@@ -238,11 +238,15 @@ export class Match {
 		this.#broadcast({type: types.END_GAME});
 	}
 	input(id, direction) {
-		const p = this.#players[id];
-		if (!p) return;
+		try {
+			const p = this.#players[id];
+			if (!p) return;
 
-		p.direction.up = direction.up;
-		p.direction.down = direction.down;
+			p.direction.up = direction.up;
+			p.direction.down = direction.down;
+		} catch (error) {
+			console.log("Error handling input:", error.message);
+		}
 	}
 	#getRandom() {
 		return (Math.random() < 0.5 ? -1 : 1);

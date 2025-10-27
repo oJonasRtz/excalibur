@@ -6,7 +6,7 @@ export let socket: WebSocket | null = null;
 
 export function connectPlayer(): void {
 	const serverIp = "localhost";
-	socket = new WebSocket(`wss://${serverIp}:8443`);
+	socket = new WebSocket(`ws://${serverIp}:8443`);
 
 	socket.onopen = () => {
 		console.log('Connected to WebSocket server');

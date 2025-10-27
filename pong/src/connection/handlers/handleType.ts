@@ -8,19 +8,16 @@ import { handleOpponentConnection } from "./handleOpponentConnection";
 import { handleStart } from "./handleStart";
 import { handleTimer } from "./handleTimer";
 import { handleUpdateStats } from "./handleUpdateStats";
+import { updateState } from "./updateState";
 
 type Handler = (data: any) => void;
 
 const map: Record<string, Handler> = {
-	updateStats: handleUpdateStats,
-	connectPlayer: handleConnectPlayer,
-	input: handleInput,
-	timer: handleTimer,
-	start: handleStart,
-	opponentConnection: handleOpponentConnection,
-	bounce: handleBounce,
-	newBall: handleNewBall,
-	endGame: handleEndGame,
+	PLAYER_CONNECTED: handleConnectPlayer,
+	START_GAME: handleStart,
+	OPPONENT_CONNECTION: handleOpponentConnection,
+	END_GAME: handleEndGame,
+	PING: updateState,
 }
 
 export function handleType(data: any) {
