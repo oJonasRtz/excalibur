@@ -1,5 +1,4 @@
 import { createId } from "./creates/createId.js";
-import { removeMatch } from "./creates/createMatch.js";
 import { DISCONNECT_TIMEOUT, lobby, matches, types } from "./server.shared.js";
 import { getTime } from "./utils/getTime.js";
 import { sendMesage } from "./utils/send.js";
@@ -57,7 +56,9 @@ export class Match {
 		console.log(`New match created with ID: ${this.#id}`);
 		this.#inactivityDisconnect(5);
 	}
-
+	get id() {
+		return this.#id;
+	}
 	// --- Match Timer Methods ---
 	#startTimer() {
 		if (!this.#matchStarted || this.#timer) return;
@@ -92,9 +93,8 @@ export class Match {
 		if (!this.#timeout) {
 			this.#timeout = setTimeout(() => {
 				console.log(`Match ${this.#id} removed due to inactivity`);
-				removeMatch(this.#index, true);
-				if (lobby.isConnected())
-					lobby.send({type: types.TIMEOUT_REMOVE, matchId: this.#id});
+				lobby.removeMatch(this.#index, true);
+				lobby.send({type: types.TIMEOUT_REMOVE, matchId: this.#id});
 			}, timeout);
 		}
 	}
@@ -114,7 +114,6 @@ export class Match {
 		player.connected = true;
 		sendMesage(player.ws, {id: slot, type: types.CONNECT_PLAYER, matchId: data.matchId, side: Math.random()});
 
-
 		// Clear inactivity timeout
 		if (this.#timeout) {
 			clearTimeout(this.#timeout);
@@ -132,7 +131,7 @@ export class Match {
 				this.#startTimer();
 			}
 			this.#broadcast(data);
-			this.setTick(playerId);
+			this.#setTick(playerId);
 		}
 
 		this.#broadcast({type: types.OPPONENT_CONNECTED, connected: true}, ws);
@@ -154,7 +153,7 @@ export class Match {
 	}
 
 	// --- Ping ---
-	setTick(id, delta = this.#players[id]?.tick) {
+	#setTick(id, delta = this.#players[id]?.tick) {
 		if (this.#players[id])
 			this.#players[id].tick = delta;
 		
@@ -200,6 +199,7 @@ export class Match {
 		});
 	}
 
+	// --- Manage Game State ---
 	endGame(winner) {
 		this.#gameEnded = true;
 		this.#stopTimer();
@@ -237,7 +237,6 @@ export class Match {
 		console.log(stats);
 		this.#broadcast({type: types.END_GAME});
 	}
-
 	input(id, direction) {
 		const p = this.#players[id];
 		if (!p) return;
@@ -245,7 +244,73 @@ export class Match {
 		p.direction.up = direction.up;
 		p.direction.down = direction.down;
 	}
+	#getRandom() {
+		return (Math.random() < 0.5 ? -1 : 1);
+	}
+	newBall() {
+		const now = Date.now();
+		const timeToStart = now + INTERVALS;
+		
+		this.#ball.exists = true;
+		if (!this.#lastScorer) {
+			this.#ball.direction.x = this.#getRandom();
+			this.#ball.direction.y = this.#getRandom();
+		} else {
+			this.#ball.direction.x = this.#lastScorer === "left" ? -1 : 1;
+			this.#ball.direction.y = this.#getRandom();
+		}
 
+		console.log(`New ball created for match ${this.#id}`);
+
+		this.#broadcast({type: types.NEW_BALL, direction: this.#ball.direction, startTime: timeToStart});
+	}
+	ballBounce(data) {
+		if (!this.#ball.exists) return;
+
+		if (!this.#ball.lastBounce)
+			this.#ball.lastBounce = {axis: data.axis, time: Date.now() - DELAY};
+
+		const DELAY = 100; //delay to ignore multiple bounces
+		const now = Date.now();
+		const sameAxis = this.#ball.lastBounce.axis === data.axis;
+		const tooSoon = now - this.#ball.lastBounce.time < DELAY;
+
+		if (sameAxis && tooSoon) return;
+
+		this.#ball.lastBounce = {axis: data.axis, time: now};
+
+		if (data.axis === 'x')
+			this.#ball.direction.x = -this.#ball.direction.x;
+		if (data.axis === 'y')
+			this.#ball.direction.y = -this.#ball.direction.y;
+
+		this.#broadcast({type: types.BOUNCE, direction: this.#ball.direction});
+		console.log(`[${this.#id}] Ball bounced on ${data.axis}-axis`);
+	}
+	ballDeath(scorerSide, player) {
+		player.notifyBallDeath = true;
+		if (!Object.keys(this.#players).every(p => this.#players[p].notifyBallDeath)) return;
+
+		// Reset notifyBallDeath for all players
+		Object.keys(this.#players).forEach(p => {
+			this.#players[p].notifyBallDeath = false;
+		});
+
+		this.#ball.exists = false;
+		this.#lastScorer = scorerSide;
+		Object.keys(this.#players).forEach((key) => {
+			const p = this.#players[key];
+
+			if (p.side === scorerSide && p.score < this.#maxScore)
+				p.score++;
+
+			if (p.score >= this.#maxScore)
+				this.endGame(p.name);
+		});
+
+		console.log(`Ball death handled for match ${this.#id}`);
+		console.log(`Score update: Left Player - ${this.#players[1].score}, Right Player - ${this.#players[2].score}`);
+	}
 	// --- Cleanup ---
 	destroy() {
 		if (this.#timeout)

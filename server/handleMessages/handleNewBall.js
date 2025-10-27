@@ -10,24 +10,28 @@ export function getRandomDir() {
 }
 
 export function handleNewBall(props) {
-	const {match, player} = props;
-	const now = Date.now();
-	const timeToStart = now + START_DELAY;
-	let ball = match.ball;
+	// const {match, player} = props;
+	// const now = Date.now();
+	// const timeToStart = now + START_DELAY;
+	// let ball = match.ball;
 
 
-	ball.exists = true;
+	// ball.exists = true;
 
-	if (!match.lastScorer) {
-		ball.direction.x = getRandomDir();
-		ball.direction.y = getRandomDir();
-	}
-	else {
-		ball.direction.x = props.match.lastScorer === "left" ? -1 : 1;
-		ball.direction.y = getRandomDir();
-	}
+	// if (!match.lastScorer) {
+	// 	ball.direction.x = getRandomDir();
+	// 	ball.direction.y = getRandomDir();
+	// }
+	// else {
+	// 	ball.direction.x = props.match.lastScorer === "left" ? -1 : 1;
+	// 	ball.direction.y = getRandomDir();
+	// }
 
-	console.log(`New ball created for match ${match.id}`);
+	// console.log(`New ball created for match ${match.id}`);
 
-	broadcast({type: "newBall", direction: ball.direction, startTime: timeToStart}, player.matchIndex);
+	// broadcast({type: "newBall", direction: ball.direction, startTime: timeToStart}, player.matchIndex);
+
+	const {match} = props;
+
+	match.newBall();
 }

@@ -5,7 +5,7 @@ import { handleType } from "./handlers/handleType";
 export let socket: WebSocket | null = null;
 
 export function connectPlayer(): void {
-	const serverIp = "10.12.1.6";
+	const serverIp = "localhost";
 	socket = new WebSocket(`wss://${serverIp}:8443`);
 
 	socket.onopen = () => {

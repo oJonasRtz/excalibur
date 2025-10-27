@@ -5,22 +5,21 @@ export const matches = {};
 export const lobby = new Lobby();
 
 export const types = {
-	ERROR: "Error",
-	CONNECT_PLAYER: "connectPlayer",
-	START_GAME: "start",
-	END_GAME: "endGame",
-	TIMER: "timer",
-	OPPONENT_CONNECTED: "opponentConnection",
-	OPPONENT_DISCONNECTED: "opponentConnection",
-	MATCH_CREATED: "matchCreated",
-	MATCH_FULL: "matchFull",
-	UPDATE_STATUS: "updateStats",
-	BALL_BOUNCE: "ballCollided",
-	LOBBY_ERROR: "lobbyError",
-	LOBBY_CONNECTED: "lobbyConnected",
-	TIMEOUT_REMOVE: "timeoutRemove",
-	PING: "ping",
-}
+	ERROR: "ERROR",
+	CONNECT_PLAYER: "PLAYER_CONNECTED",
+	START_GAME: "START_GAME",
+	END_GAME: "END_GAME",
+	OPPONENT_CONNECTED: "OPPONENT_CONNECTION",
+	OPPONENT_DISCONNECTED: "OPPONENT_CONNECTION",
+	MATCH_CREATED: "MATCH_CREATED",
+	MATCH_FULL: "MATCH_FULL",
+	BALL_BOUNCE: "BALL_BOUNCE",
+	LOBBY_ERROR: "LOBBY_ERROR",
+	LOBBY_CONNECTED: "LOBBY_CONNECTED",
+	TIMEOUT_REMOVE: "TIMEOUT_REMOVE",
+	PING: "PING",
+	MATCH_REMOVED: "MATCH_REMOVED",
+};
 
 export const closeCodes = {
 	NORMAL: 1000,

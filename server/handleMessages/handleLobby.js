@@ -8,5 +8,5 @@ import { lobby } from '../server.shared.js';
 */
 
 export function handleLobby(props) {
-	lobby.connect(props.ws, props.data);
+	lobby.connect(props.data, props.ws);
 }

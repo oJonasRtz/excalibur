@@ -9,31 +9,31 @@ import 'dotenv/config';
 import { inactivityDisconnect } from "./utils/inativityDisconnect.js";
 
 //Matches de template para testes apagar futuramente
-createMatch({
-	// id: 1,
-	players: {
-		1: {id: 4002, name: "Raltz"},
-		2: {id: 8922, name: "Kirlia"}
-	},
-})
+// lobby.createMatch({
+// 	// id: 1,
+// 	players: {
+// 		1: {id: 4002, name: "Raltz"},
+// 		2: {id: 8922, name: "Kirlia"}
+// 	},
+// })
 
-createMatch({
-	// id: 2,
-	players: {
-		1: {id: 314, name: "Pikachu"},
-		2: {id: 271, name: "Eevee"}
-	}
-})
+// lobby.createMatch({
+// 	// id: 2,
+// 	players: {
+// 		1: {id: 314, name: "Pikachu"},
+// 		2: {id: 271, name: "Eevee"}
+// 	}
+// })
 
 //port 8443 for tests with wss, change to 443  for production
 //.env nao esta funcionando ainda verificar futuramente
 const PORT = process.env.PORT || 8443;
 const HOST = process.env.HOST || 'localhost';
-const server = https.createServer({
-	key: fs.readFileSync('./ssl/server.key'),
-	cert: fs.readFileSync('./ssl/server.cert')
-});
-const wss = new WebSocketServer({ server });
+// const server = https.createServer({
+// 	key: fs.readFileSync('./ssl/server.key'),
+// 	cert: fs.readFileSync('./ssl/server.cert')
+// });
+const wss = new WebSocketServer({ port: PORT });
 
 wss.on("connection", (ws) => {
 	ws.player = null;
@@ -55,13 +55,19 @@ wss.on("connection", (ws) => {
 
 		console.log("Connection closed");
 
-		const match = matches[ws.player?.matchIndex] || Object.values(matches).find(m => m && Object.values(m.players).some(p => p.ws === ws));
-		if (match)
-			match.disconnectPlayer(ws);
+		if (!matches) return;
+		try {
+			const match = matches[ws.player?.matchIndex] || Object.values(matches).find(m => m && Object.values(m.players).some(p => p.ws === ws));
+			if (match)
+				match.disconnectPlayer(ws);
+		}
+		catch (error) {
+			console.error("Error during disconnection:", error.message);
+		}
 	});
 });
 
-server.listen(PORT, () => {
-	console.log(`WebSocket server is running on wss://${HOST}:${PORT}`);
-	console.log(`got matches: ${Object.keys(matches)}`);
-});
+// server.listen(PORT, () => {
+// 	console.log(`WebSocket server is running on wss://${HOST}:${PORT}`);
+// 	console.log(`got matches: ${Object.keys(matches)}`);
+// });

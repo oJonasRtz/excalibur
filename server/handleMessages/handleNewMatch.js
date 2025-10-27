@@ -6,17 +6,19 @@ import { sendError } from "../utils/sendError.js";
 export function handleNewMatch(props) {
 	const { data, ws } = props;
 
-	if (!data || !lobby.checkPermissions(ws)) {
-		sendError(ws, PERMISSION_ERROR);
-		return;
-	}
+	// if (!data || !lobby.checkPermissions(ws)) {
+	// 	sendError(ws, PERMISSION_ERROR);
+	// 	return;
+	// }
 
-	const newMatch = createMatch(data);
+	// const newMatch = createMatch(data);
 
-	if (!newMatch) {
-		lobby.send({type: types.ERROR, reason: types.MATCH_FULL});
-		return;
-	}
+	// if (!newMatch) {
+	// 	lobby.send({type: types.ERROR, reason: types.MATCH_FULL});
+	// 	return;
+	// }
 
-	lobby.send({type: types.MATCH_CREATED, matchId: newMatch.id});
+	// lobby.send({type: types.MATCH_CREATED, matchId: newMatch.id});
+	console.log("Creating new match from lobby...");
+	lobby.createMatch(data, ws);
 } 

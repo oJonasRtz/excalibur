@@ -8,6 +8,7 @@ import { handleNewBall } from "./handleNewBall.js";
 import { handleBounce } from "./handleBounce.js";
 import { handleBallDeath } from "./handleBallDeath.js";
 import { cleanMatch } from "./cleanMatch.js";
+import { lobbyRemoveMatch } from "./removeMatch.js";
 
 const map = {
 	input: handleInput,
@@ -18,7 +19,8 @@ const map = {
 	newBall: handleNewBall,
 	bounce: handleBounce,
 	ballDeath: handleBallDeath,
-	endGame: cleanMatch
+	endGame: cleanMatch,
+	removeMatch: lobbyRemoveMatch
 };
 
 export function handleTypes(player, data, ws) {
@@ -27,11 +29,14 @@ export function handleTypes(player, data, ws) {
 						? Object.values(matches).filter(m => m).find(m => m.id === data.matchId)
 						: null;
 
-	console.log(`received type: ${type} with data:`, {data});
+	console.log(`received type: ${type} with:`, {data});
 	if (type !== "connectPlayer" && !data.id) return;
 
 	const handler = map[type];
-	if (!handler) return;
+	if (!handler) {
+		console.error(`No handler for message type: ${type}`);
+		return;
+	};
 
 	const props = {
 		player: player,
