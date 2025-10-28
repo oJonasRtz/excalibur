@@ -3,7 +3,7 @@ import { DISCONNECT_TIMEOUT, lobby, matches, types } from "./server.shared.js";
 import { getTime } from "./utils/getTime.js";
 import { sendMesage } from "./utils/send.js";
 
-const INTERVALS = 1000; //1 sec
+export const INTERVALS = 1000; //1 sec
 const FPS = 60;
 
 export class Match {

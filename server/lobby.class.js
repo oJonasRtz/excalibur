@@ -71,7 +71,7 @@ export class Lobby {
 	createMatch(data, ws) {
 		//Descomentar dps
 		console.log("ws === this.#ws ?", ws === this.#ws);
-		if (!this.#connected || ws !== this.#ws)
+		if (!this.checkPermissions(ws))
 			throw new Error(PERMISSION_ERROR);
 
 		const i = this.#freeIndexes.length ? this.#freeIndexes.pop() : this.#index++;
