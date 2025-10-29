@@ -1,13 +1,14 @@
 import { addClient } from "../creates/addClient.js";
-import { closeCodes, types } from "../server.shared.js";
-import { broadcast } from "../utils/broadcast.js";
+import { closeCodes } from "../server.shared.js";
 
 export function handleConnect(props) {
-	const {player} = props;
 	try {
-		player = addClient(props.ws, props.data);
-		// props.ws.player = props.player;
-		// broadcast({type: types.OPPONENT_CONNECTED, connected: true}, props.player.matchIndex);
+		const playerData = addClient(props.ws, props.data);
+
+		props.ws.player = {
+			slot: playerData.id,
+			matchIndex: playerData.matchIndex,
+		}
 	} catch (error) {
 		console.error("Error adding client:", error.message);
 		props.ws.close(closeCodes.INTERNAL_ERROR, "Error adding client");

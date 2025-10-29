@@ -20,7 +20,12 @@ const map = {
 	bounce: handleBounce,
 	ballDeath: handleBallDeath,
 	endGame: cleanMatch,
-	removeMatch: lobbyRemoveMatch
+	removeMatch: lobbyRemoveMatch,
+	PING: (props) => {
+		const {match, data} = props;
+
+		match.pong(data);
+	},
 };
 
 export function handleTypes(player, data, ws) {

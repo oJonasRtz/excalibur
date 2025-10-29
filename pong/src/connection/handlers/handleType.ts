@@ -1,4 +1,5 @@
 import { gameState } from "../../globals";
+import { calculateLatency } from "../utils/getLatency";
 import { handleBounce } from "./handleBounce";
 import { handleConnectPlayer } from "./handleConnectPlayer";
 import { handleEndGame } from "./handleEndGame";
@@ -18,6 +19,10 @@ const map: Record<string, Handler> = {
 	OPPONENT_CONNECTION: handleOpponentConnection,
 	END_GAME: handleEndGame,
 	PING: updateState,
+	PONG: () => {
+		gameState.latency = calculateLatency();
+		console.log(`Latency: ${gameState.latency} ms`);
+	}
 }
 
 export function handleType(data: any) {
@@ -27,6 +32,5 @@ export function handleType(data: any) {
 	if (!func) return;
 
 	gameState.latency = Date.now() - data.timestamp;
-	console.log(`Latency: ${gameState.latency} ms`);
 	func(data);
 }

@@ -1,29 +1,10 @@
 import { WebSocketServer } from "ws";
 import fs from "fs";
 import https from "https";
-import { DISCONNECT_TIMEOUT, lobby, matches, types } from "./server.shared.js";
-import { broadcast } from "./utils/broadcast.js";
-import { createMatch, removeMatch } from "./creates/createMatch.js";
+import { lobby, matches } from "./server.shared.js";
 import { handleTypes } from "./handleMessages/handleTypes.js";
 import 'dotenv/config';
-import { inactivityDisconnect } from "./utils/inativityDisconnect.js";
 
-//Matches de template para testes apagar futuramente
-// lobby.createMatch({
-// 	// id: 1,
-// 	players: {
-// 		1: {id: 4002, name: "Raltz"},
-// 		2: {id: 8922, name: "Kirlia"}
-// 	},
-// })
-
-// lobby.createMatch({
-// 	// id: 2,
-// 	players: {
-// 		1: {id: 314, name: "Pikachu"},
-// 		2: {id: 271, name: "Eevee"}
-// 	}
-// })
 
 //port 8443 for tests with wss, change to 443  for production
 //.env nao esta funcionando ainda verificar futuramente
@@ -59,7 +40,8 @@ wss.on("connection", (ws) => {
 		try {
 			const match = matches[ws.player?.matchIndex] || Object.values(matches).find(m => m && Object.values(m.players).some(p => p.ws === ws));
 			if (match)
-				match.disconnectPlayer(ws);
+				match.disconnectPlayer(ws.player?.slot);
+			ws.player = null;
 		}
 		catch (error) {
 			console.error("Error during disconnection:", error.message);

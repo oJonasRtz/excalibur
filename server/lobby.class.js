@@ -69,8 +69,6 @@ export class Lobby {
 	}
 	// --- Match Management ---
 	createMatch(data, ws) {
-		//Descomentar dps
-		console.log("ws === this.#ws ?", ws === this.#ws);
 		if (!this.checkPermissions(ws))
 			throw new Error(PERMISSION_ERROR);
 

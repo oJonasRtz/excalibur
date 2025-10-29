@@ -7,6 +7,8 @@ export const lobby = new Lobby();
 export const types = {
 	ERROR: "ERROR",
 	CONNECT_PLAYER: "PLAYER_CONNECTED",
+	DISCONNECT_PLAYER: "PLAYER_DISCONNECTED",
+	NOT_CONNECTED: "NOT_CONNECTED",
 	START_GAME: "START_GAME",
 	END_GAME: "END_GAME",
 	OPPONENT_CONNECTED: "OPPONENT_CONNECTION",
@@ -19,6 +21,8 @@ export const types = {
 	TIMEOUT_REMOVE: "TIMEOUT_REMOVE",
 	PING: "PING",
 	MATCH_REMOVED: "MATCH_REMOVED",
+	DUP: "DUPLICATE",
+	NOT_FOUND: "NOTFOUND",
 };
 
 export const closeCodes = {
@@ -28,3 +32,5 @@ export const closeCodes = {
 }
 
 export const DISCONNECT_TIMEOUT = 60000; // 1 minute
+export const INTERVALS = 1000; //1 second
+export const FPS = 60;

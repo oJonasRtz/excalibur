@@ -1,6 +1,7 @@
 import { gameState, identity, RECONNECTION__DELAY } from "../globals";
 import { checkKeys } from "./checkKeys";
 import { handleType } from "./handlers/handleType";
+import { getLatency, stopGettingLatency } from "./utils/getLatency";
 
 export let socket: WebSocket | null = null;
 
@@ -12,6 +13,7 @@ export function connectPlayer(): void {
 		console.log('Connected to WebSocket server');
 		socket?.send(JSON.stringify({type: "connectPlayer", matchId: identity.matchId, name: identity.name, id: identity.id, playerId: identity.playerId}));
 		gameState.connected = true;
+		getLatency();
 	}
 
 	checkKeys(socket);
@@ -43,6 +45,7 @@ export function connectPlayer(): void {
 export function disconnectPlayer(reason: string): void {
 	if (!socket) return;
 
+	stopGettingLatency();
 	console.log(`[disconnectPlayer] Disconnecting from server: ${reason}`);
 	socket.close(1000, reason);
 	socket = null;

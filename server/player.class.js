@@ -1,8 +1,8 @@
-import { INTERVALS } from "./match.class";
-import { sendMesage } from "./utils/send";
+import { FPS, INTERVALS, lobby, types } from "./server.shared.js";
 
 export class Player {
 	#id;
+	#slot = -1;
 	#name;
 	#score = 0;
 	#connected = false;
@@ -10,51 +10,57 @@ export class Player {
 	#ws = null;
 	#notifyBallDeath = false;
 	#side;
-	#tick = INTERVALS / 60;
+	#tick = INTERVALS / FPS;
 	#pingInterval = null;
 	#direction = {up: false, down: false};
+	#matchId = 0;
 
 	constructor(data, index) {
 		const side = ((index + 1) % 2 === 0) ? "left" : "right";
 		this.#id = data.id;
 		this.#name = data.name;
 		this.#side = side;
+		this.#matchId = data.matchId;
+		this.#slot = index;
 	}
 	get info() {
 		return {
-			id: {...this.#id},
-			name: {...this.#name},
-			score: {...this.#score},
+			id: this.#id,
+			name: this.#name,
+			score: this.#score,
 			direction: {...this.#direction},
 		}
 	}
 	get connected() {
-		return {...this.#connected};
+		return this.#connected;
 	}
 	get side() {
-		return {...this.#side};
+		return this.#side;
 	}
 	get notifyEnd() {
-		return {...this.#notifyEnd};
+		return this.#notifyEnd;
 	}
 	get notifyBallDeath() {
-		return {...this.#notifyBallDeath};
+		return this.#notifyBallDeath;
 	}
-	set notifyEnd(value) {
-		this.#notifyEnd = value;
-	}
-	set notifyBallDeath(value) {
-		this.#notifyBallDeath = value;
+	get slot() {
+		return this.#slot;
 	}
 
-
-	connect(ws) {
-		if (this.#connected) 
-			throw new Error("DUPLICATE");
-		
+	connect(ws, id, name) {
+		if (id !== this.#id || name !== this.#name) 
+			throw new Error(types.NOT_FOUND);
+		if (this.#connected) {
+			lobby.send({
+				type: types.ERROR,
+				error: types.DUP,
+				matchId: this.#matchId,
+				playerId: this.#id,
+			});
+			throw new Error(types.DUP);
+		}
 		this.#ws = ws;
 		this.#connected = true;
-		sendMesage(this.#ws, {type: "player_connected", playerId: this.#id});
 	}
 	ping(message) {
 		if (this.#pingInterval)
@@ -64,9 +70,13 @@ export class Player {
 				this.send({...message});
 		}, this.#tick);
 	}
-	#pong() {
-		
-	}
+	// pong(data) {
+	// 	if (!data.change) return;
+
+	// 	this.#direction = data.direction;
+	// 	this.#notifyBallDeath = data.notifyBallDeath;
+	// 	this.#notifyEnd = data.notifyEnd;
+	// }
 	stopPing() {
 		if (this.#pingInterval)
 			clearInterval(this.#pingInterval);
@@ -74,7 +84,7 @@ export class Player {
 	}
 	send(message) {
 		if (!this.#connected || !this.#ws || this.#ws.readyState !== 1)
-			throw new Error("NOT_CONNECTED");
+			throw new Error(types.NOT_CONNECTED);
 		this.#ws.send(JSON.stringify({...message, timestamp: Date.now()}));
 	}
 	destroy() {

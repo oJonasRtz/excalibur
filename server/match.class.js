@@ -1,10 +1,10 @@
 import { createId } from "./creates/createId.js";
+import { Player } from "./player.class.js";
 import { DISCONNECT_TIMEOUT, lobby, matches, types } from "./server.shared.js";
 import { getTime } from "./utils/getTime.js";
 import { sendMesage } from "./utils/send.js";
 
-export const INTERVALS = 1000; //1 sec
-const FPS = 60;
+
 
 export class Match {
 	#allConnected = false;
@@ -27,6 +27,7 @@ export class Match {
 		lastBounce: null,
 	};
 	#lastScorer = null; // "left" | "right" | null
+	#lastState = null;
 
 	constructor (data, index) {
 		if (!data.players[1] || !data.players[2]) {
@@ -35,22 +36,26 @@ export class Match {
 		this.#id = createId(data.players[1].id, data.players[2].id);
 		this.#maxPlayers = data?.maxPlayers || this.#maxPlayers;
 		this.#maxScore = data?.maxScore || this.#maxScore;
+		// Object.values(data.players).forEach((p, i) => {
+		// 	const side = ((i + 1) % 2 === 0) ? "left" : "right";
+		// 	this.#players[i + 1] = {
+		// 			id: p.id,
+		// 			name: p.name,
+		// 			score: 0,
+		// 			connected: false,
+		// 			notifyEnd: false,
+		// 			ws: null,
+		// 			notifyBallDeath: false,
+		// 			side: side,
+		// 			tick: INTERVALS / FPS,
+		// 			pingInterval: null,
+		// 			direction: {up: false, down: false},
+		// 	};
+		// })
 		Object.values(data.players).forEach((p, i) => {
-			const side = ((i + 1) % 2 === 0) ? "left" : "right";
-			this.#players[i + 1] = {
-					id: p.id,
-					name: p.name,
-					score: 0,
-					connected: false,
-					notifyEnd: false,
-					ws: null,
-					notifyBallDeath: false,
-					side: side,
-					tick: INTERVALS / FPS,
-					pingInterval: null,
-					direction: {up: false, down: false},
-			};
-		})
+			const index = i + 1;
+			this.#players[index] = new Player(p, index);
+		});
 		this.#index = index;
 
 		console.log(`New match created with ID: ${this.#id}`);
@@ -83,9 +88,14 @@ export class Match {
 	#broadcast(message, wsToSkip = null) {
 		if (!this.#allConnected) return;
 
-		for (const p of Object.values(this.#players))
-			if (p.ws && p.ws.readyState === p.ws.OPEN && p.ws !== wsToSkip)
-				sendMesage(p.ws, message);
+			for (const p of Object.values(this.#players))
+				if (p.ws && p.ws.readyState === p.ws.OPEN && p.ws !== wsToSkip) {
+					try {
+						p.send(message);
+					} catch (error) {
+						console.error("Error sending message:", error.message);
+					}
+				}
 	}
 	#inactivityDisconnect(minutes = 1) {
 		const timeout = DISCONNECT_TIMEOUT * minutes;
@@ -101,18 +111,20 @@ export class Match {
 
 	// --- Player Connection ---
 	connectPlayer(playerId, ws, name) {
-		const slot = Object.keys(this.#players).find(p => this.#players[p].name === name && this.#players[p].id === playerId);
-
-		if (!slot)
-			throw new Error("NOTFOUND");
-
-		const player = this.#players[slot];
-		if (player.connected && player.ws?.readyState === player.ws.OPEN)
-			throw new Error("DUPLICATE");
-
-		player.ws = ws;
-		player.connected = true;
-		sendMesage(player.ws, {id: slot, type: types.CONNECT_PLAYER, matchId: this.#id, side: Math.random()});
+		let slot = 0;
+		for (const [key, p] of Object.entries(this.#players)) {
+			try {
+				p.connect(ws, playerId, name);
+				p.send({type: types.CONNECT_PLAYER, id: key, matchId: this.#id, side: Math.random()});
+				console.log(`Player ${key} connected to match ${this.#id}`);
+				slot = key;
+				break;
+			} catch (error) {
+				// Ignore NOTFOUND errors, log others
+				if (error.message !== types.NOT_FOUND)
+					console.error("Error connecting player:", error.message);
+			}
+		}
 
 		// Clear inactivity timeout
 		if (this.#timeout) {
@@ -135,19 +147,16 @@ export class Match {
 		}
 
 		this.#broadcast({type: types.OPPONENT_CONNECTED, connected: true}, ws);
-		return { matchIndex: this.#index};
+		return { matchIndex: this.#index, id: slot};
 	}
-	disconnectPlayer(ws) {
-		const player = Object.values(this.#players).find(p => p.ws === ws);
+	disconnectPlayer(slot) {
+		const player = this.#players[slot];
 		if (!player) return;
 
-		console.log(`Player ${player.name} disconnected from match ${this.#id}`);
-		player.connected = false;
-		player.ws = null;
-
+		player.destroy();
 		this.#allConnected = false;
 		this.#broadcast({type: types.OPPONENT_DISCONNECTED, connected: false});
-
+		
 		if (this.#gameStarted && !this.#gameEnded && Object.values(this.#players).every(p => !p.connected))
 			this.#inactivityDisconnect(5);
 	}
@@ -184,6 +193,11 @@ export class Match {
 			players,
 			ballDirection: this.#ball.direction,
 		}
+		const change = !this.#lastState || (
+			JSON.stringify(this.#lastState) !== JSON.stringify(message)
+		);
+		this.#lastState = message;
+		message.change = change;
 
 		this.#players[id].pingInterval = setInterval(() => {
 			if (this.#players[id].ws && this.#players[id].ws.readyState === this.#players[id].ws.OPEN)
@@ -197,6 +211,15 @@ export class Match {
 				p.pingInterval = null;
 			}
 		});
+	}
+	pong(data) {
+		const p = this.#players[data.id];
+
+		try {
+			p.send({type: "PONG"})
+		} catch (error) {
+			console.error("Error sending PONG:", error.message);
+		}
 	}
 
 	// --- Manage Game State ---

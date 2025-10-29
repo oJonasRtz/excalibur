@@ -1,9 +1,8 @@
-import { removeMatch } from "../creates/createMatch.js";
+import { lobby } from "../server.shared.js";
 import { sendMesage } from "../utils/send.js";
 
 export function cleanMatch(props) {
 	const { player } = props;
-	removeMatch(player.matchIndex);
-
+	lobby.removeMatch(player.matchIndex);
 	sendMesage(player.ws, {type: "endGame"});
 }
