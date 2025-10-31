@@ -10,6 +10,12 @@ const handlers = {
 	[types.recieves.END_GAME]: ({ws}) => lobby.removeMatch(ws.player.matchIndex),
 }
 
+/*
+	Manages the recieved messages
+		* Connect players and lobby
+		* Manage Lobby requests
+		* Calls Match state updates
+*/
 export function handleTypes(ws, data) {
 	try {
 		const type = data.type;
