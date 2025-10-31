@@ -3,7 +3,7 @@ import { sendMesage } from "./send.js";
 
 export function sendError(ws, message) {
 	const error = {
-		type: types.ERROR,
+		type: types.message.ERROR,
 		reason: message,
 	}
 	// ws.send(JSON.stringify(error));

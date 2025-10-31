@@ -1,54 +1,34 @@
-import { matches } from "../server.shared.js";
-import { handleLobby } from "./handleLobby.js";
-import { handleConnect } from "./handleConnect.js";
-import { handleInput } from "./handleInput.js";
-import { handleNewMatch } from "./handleNewMatch.js";
-import { handleUpdateStats } from "./handleUpdateStats.js";
-import { handleNewBall } from "./handleNewBall.js";
-import { handleBounce } from "./handleBounce.js";
-import { handleBallDeath } from "./handleBallDeath.js";
-import { cleanMatch } from "./cleanMatch.js";
-import { lobbyRemoveMatch } from "./removeMatch.js";
+import { lobby, types } from "../server.shared";
+import { handleConnect } from "./handleConnect";
 
-const map = {
-	input: handleInput,
-	newMatch: handleNewMatch,
-	connectPlayer: handleConnect,
-	updateStats: handleUpdateStats,
-	connectLobby: handleLobby,
-	newBall: handleNewBall,
-	bounce: handleBounce,
-	ballDeath: handleBallDeath,
-	endGame: cleanMatch,
-	removeMatch: lobbyRemoveMatch,
-	PING: (props) => {
-		const {match, data} = props;
+const handlers = {
+	[types.recieves.PING]: ({data, match}) => match.pong(data),
+	[types.recieves.NEW_MATCH]: ({data, ws}) => lobby.createMatch(data, ws),
+	[types.recieves.REMOVE_MATCH]: ({match}) => lobby.removeMatch(match.index, true),
+	[types.recieves.CONNECT_PLAYER]: ({ws, data}) => handleConnect(ws, data),
+	[types.recieves.CONNECT_LOBBY]: ({ws, data}) => lobby.connect(data, ws),
+	[types.recieves.END_GAME]: ({ws}) => lobby.removeMatch(ws.player.matchIndex),
+}
 
-		match.pong(data);
-	},
-};
+export function handleTypes(ws, data) {
+	try {
+		const type = data.type;
+		const match = data.matchId
+							? Object.values(matches).filter(m => m).find(m => m.id === data.matchId)
+							: null;
+		
+		console.log(`received type: ${type} with:`, {data});
+		if (!match || type === types.recieves.CONNECT_PLAYER || !data.id) return;
 
-export function handleTypes(player, data, ws) {
-	const type = data.type;
-	const match = data.matchId
-						? Object.values(matches).filter(m => m).find(m => m.id === data.matchId)
-						: null;
+		const handler = handlers[type];
+		if (!handler) {
+			console.error(`No handler for message type: ${type}`);
+			return;
+		}
 
-	console.log(`received type: ${type} with:`, {data});
-	if (type !== "connectPlayer" && !data.id) return;
+		handler({ws, data, match});
 
-	const handler = map[type];
-	if (!handler) {
-		console.error(`No handler for message type: ${type}`);
-		return;
-	};
-
-	const props = {
-		player: player,
-		match: match,
-		ws: ws,
-		data: data,
-	};
-
-	handler(props);
+	} catch (error) {
+		console.log("Error handling message type:", error.message);
+	}
 }

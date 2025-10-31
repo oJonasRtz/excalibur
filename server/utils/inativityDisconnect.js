@@ -11,7 +11,7 @@ export function inactivityDisconnect(index ,minutes = 1) {
 			console.log(`Match ${match.id} removed due to inactivity`);
 			lobby.removeMatch(index, true);
 			if (lobby.isConnected())
-				lobby.send({type: types.TIMEOUT_REMOVE, matchId: match.id});
+				lobby.send({type: types.message.TIMEOUT_REMOVE, matchId: match.id});
 		}, timeout);
 	}
 }

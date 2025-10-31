@@ -13,7 +13,7 @@ export function startMatchTimer(match, i) {
 		const { minute, second } = getTime(match.matchDuration, true);
 		const formatted = `${minute}:${second}`;
 		const message = {
-			type: types.TIMER,
+			type: types.message.TIMER,
 			time: formatted,
 		};
 

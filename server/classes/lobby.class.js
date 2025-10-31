@@ -1,8 +1,6 @@
-import { Match } from "./match.class.js";
+import { Match } from "./classes/match.class.js";
 import { closeCodes, lobby, matches, types } from "./server.shared.js";
 import { sendError } from "./utils/sendError.js";
-
-export const PERMISSION_ERROR = "Permission denied";
 
 const SECOND = 1000;
 
@@ -22,26 +20,31 @@ export class Lobby {
 			this.#sendPending();
 		}, 10 * SECOND);
 	}
+	#connectionError(ws, message) {
+		sendError(ws, message);
+		ws.close(closeCodes.POLICY_VIOLATION, message);
+	}
 	connect(data, ws) {
-		if (this.#connected) {
-			sendError(ws, PERMISSION_ERROR);
-			ws.close(closeCodes.POLICY_VIOLATION, PERMISSION_ERROR);
-			return;
+		try {
+			if (this.#connected) {
+				this.#connectionError(ws, types.error.PERMISSION_ERROR);
+				return;
+			}
+
+			if (data.pass !== this.#pass || data.id !== this.#id) {
+				this.#connectionError(ws, types.error.PERMISSION_ERROR);
+				return;
+			}
+
+			this.#ws = ws;
+			this.#connected = true;
+			console.log("Lobby.connect: lobby connected");
+			this.send({type: types.message.LOBBY_CONNECTED});
+			this.#sendPending();
+		} catch (error) {
+			console.error("Lobby.connect: Error connecting lobby:", error.message);
+			this.#connectionError(ws, types.message.ERROR);
 		}
-
-		console.log(`login: ${this.#id} | pass: ${this.#pass}`);
-
-		if (data.pass !== this.#pass || data.id !== this.#id) {
-			sendError(ws, PERMISSION_ERROR);
-			ws.close(closeCodes.POLICY_VIOLATION, PERMISSION_ERROR);
-			return;
-		}
-
-		this.#ws = ws;
-		this.#connected = true;
-		console.log("lobby connected");
-		this.send({type: types.LOBBY_CONNECTED});
-		this.#sendPending();
 	}
 	isConnected(ws = null) {
 		if (ws)
@@ -51,38 +54,43 @@ export class Lobby {
 	send(data) {
 		try {
 			if (!data)
-				throw new Error("Invalid data");
+				throw new Error(types.error.TYPE_ERROR);
 			if (!this.#connected || !this.#ws || this.#ws.readyState !== 1) {
 				if (this.#sendQueue.messages.length <= this.#sendQueue.max)
 					this.#sendQueue.messages.push(data);
 				else
 					throw new Error("Send queue full, message dropped");
-				console.log(`pending queue: ${JSON.stringify(this.#sendQueue.messages)}`);
+				console.log(`Lobby.send: pending queue: ${JSON.stringify(this.#sendQueue.messages)}`);
 				return;
 			}
 			this.#ws.send(JSON.stringify({...data, timestamp: Date.now()}));
 		} catch (error) {
-			console.error("Error sending lobby message:", error.message);
+			if ([error.name, error.message].includes(types.error.TYPE_ERROR)) {
+				console.error("Lobby.send: Type error detected");
+				return;
+			}
+			console.error("Lobby.send: Error sending lobby message:", error.message);
 			if (this.#sendQueue.messages.length <= this.#sendQueue.max)
 				this.#sendQueue.messages.push(data);
 		}
 	}
 	// --- Match Management ---
 	createMatch(data, ws) {
-		if (!this.checkPermissions(ws))
-			throw new Error(PERMISSION_ERROR);
-
-		const i = this.#freeIndexes.length ? this.#freeIndexes.pop() : this.#index++;
-
 		try {
+			if (!this.checkPermissions(ws))
+				throw new Error(types.error.PERMISSION_ERROR);
+
+			const i = this.#freeIndexes.length ? this.#freeIndexes.pop() : this.#index++;
+
 			const newMatch = new Match(data, i);
 			matches[i] = newMatch;
-			this.send({type: types.MATCH_CREATED, matchId: newMatch.id});
-			return (newMatch);
+			this.send({type: types.message.MATCH_CREATED, matchId: newMatch.id});
 		} catch (error) {
 			console.error("Error creating match:", error.message);
+			this.send({type: types.message.ERROR, error: error.message});
 		}
 	}
+	//Fazer tratamento para o force = pedir credenciais
 	removeMatch(index, force = false) {
 		const match = matches[index];
 		const stop = !match
@@ -96,10 +104,10 @@ export class Lobby {
 			this.#freeIndexes.push(Number(index));
 		console.log(`Match ${index} removed`);
 		console.log(`got matches: ${Object.keys(matches)}`);
-		lobby.send({type: types.MATCH_REMOVED, matchId: match.id});
+		lobby.send({type: types.message.MATCH_REMOVED, matchId: match.id});
 	}
 	#sendPending() {
-		if (!this.#connected || !this.#ws || this.#ws.readyState !== 1) return;
+		if (!this.#sendQueue.messages.length || !this.#connected || !this.#ws || this.#ws.readyState !== 1) return;
 
 		while (this.#sendQueue.messages.length) {
 			const data = this.#sendQueue.messages[0];

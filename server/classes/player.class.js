@@ -1,4 +1,4 @@
-import { FPS, INTERVALS, lobby, types } from "./server.shared.js";
+import { lobby, types } from "../server.shared.js";
 
 export class Player {
 	#id;
@@ -10,7 +10,6 @@ export class Player {
 	#ws = null;
 	#notifyBallDeath = false;
 	#side;
-	#tick = INTERVALS / FPS;
 	#pingInterval = null;
 	#direction = {up: false, down: false};
 	#matchId = 0;
@@ -49,27 +48,27 @@ export class Player {
 
 	connect(ws, id, name) {
 		if (id !== this.#id || name !== this.#name) 
-			throw new Error(types.NOT_FOUND);
+			throw new Error(types.error.NOT_FOUND);
 		if (this.#connected) {
 			lobby.send({
-				type: types.ERROR,
-				error: types.DUP,
+				type: types.message.ERROR,
+				error: types.error.DUP,
 				matchId: this.#matchId,
 				playerId: this.#id,
 			});
-			throw new Error(types.DUP);
+			throw new Error(types.error.DUP);
 		}
 		this.#ws = ws;
 		this.#connected = true;
 	}
-	ping(message) {
-		if (this.#pingInterval)
-			clearInterval(this.#pingInterval);
-		this.#pingInterval = setInterval(() => {
-			if (this.#ws && this.#ws.readyState === 1)
-				this.send({...message});
-		}, this.#tick);
-	}
+	// ping(message) {
+	// 	if (this.#pingInterval)
+	// 		clearInterval(this.#pingInterval);
+	// 	this.#pingInterval = setInterval(() => {
+	// 		if (this.#ws && this.#ws.readyState === 1)
+	// 			this.send({...message});
+	// 	}, this.#tick);
+	// }
 	// pong(data) {
 	// 	if (!data.change) return;
 
@@ -84,7 +83,7 @@ export class Player {
 	}
 	send(message) {
 		if (!this.#connected || !this.#ws || this.#ws.readyState !== 1)
-			throw new Error(types.NOT_CONNECTED);
+			throw new Error(types.error.NOT_CONNECTED);
 		this.#ws.send(JSON.stringify({...message, timestamp: Date.now()}));
 	}
 	destroy() {
