@@ -1,15 +1,17 @@
-import { types } from "../server.shared";
+import { INTERVALS, types } from "../server.shared";
 
 export class Ball {
 	#direction = {x: 0, y: 0};
 	#position = {x: 0, y: 0};
+	#speed = .3;
 	#lastBounce = null;
+	#startTime = null;
 	#DELAY = 100;
 
 	constructor(lastScorer) {
 		const dir = {"left": -1, "right": 1};
 
-		if (!lastScorer || !(lastScorer in dir))
+		if (!(lastScorer in dir))
 			throw new Error(types.error.TYPE_ERROR);
 		const vector = {
 			x: !lastScorer ? this.#getRandom() : dir[lastScorer],
@@ -17,21 +19,22 @@ export class Ball {
 		};
 
 		this.#direction = vector;
+		this.#startTime = Date.now() + INTERVALS + (INTERVALS / FPS);
 	}
-
+	get direction() {
+		return {...this.#direction};
+	}
+	get startTime() {
+		return this.#startTime;
+	}
 	#getRandom() {
 		return (Math.random() < 0.5 ? -1 : 1);
 	}
 
-	updatePosition(newPos, newDir, mapWidth) {
-		const isValidVector = (v) => v && typeof v.x === "number" && typeof v.y === "number";
-		if (!isValidVector(newPos) || !isValidVector(newDir))
-			throw new Error(types.error.TYPE_ERROR);
-
-		this.#position.x = newPos.x;
-		this.#position.y = newPos.y;
-		this.#direction.x = newDir.x;
-		this.#direction.y = newDir.y;
+	updatePosition(mapWidth) {
+		
+		this.#position.x += this.#direction.x * this.#speed
+		this.#position.y += this.#direction.y * this.#speed;
 
 		const i = (this.#position.x <= 0) - (this.#position.x >= mapWidth);
 		const scorer = {
@@ -57,7 +60,10 @@ export class Ball {
 		this.#lastBounce = {axis, time: now};
 
 		const axisMap = {
-			'x': () => { this.#direction.x = -this.#direction.x; },
+			'x': () => {
+				this.#direction.x = -this.#direction.x;
+				if (this.#speed < 1.5) this.#speed += 0.2;
+			},
 			'y': () => { this.#direction.y = -this.#direction.y; },
 		};
 
