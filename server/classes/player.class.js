@@ -73,7 +73,7 @@ export class Player {
 	// 	if (!data.change) return;
 
 	// 	this.#direction = data.direction;
-	// 	this.#notifyBallDeath = data.notifyBallDeath;
+	// 	this.#notifyBallDeath = data.notifyBallDeath; 
 	// 	this.#notifyEnd = data.notifyEnd;
 	// }
 	stopPing() {
