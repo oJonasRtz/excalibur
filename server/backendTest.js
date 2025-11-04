@@ -14,7 +14,7 @@ function prompt() {
 	rl.on('line', (line) => {
 		switch (line.trim()) {
 			case 'newMatch':
-				socket?.send(JSON.stringify({id: ID, type: "newMatch", players: {
+				socket?.send(JSON.stringify({id: ID, type: "NEW_MATCH", players: {
 					1: {name: "Raltz", id: 4002},
 					2: {name: "Kirlia", id: 8922}
 				}}));
@@ -22,7 +22,7 @@ function prompt() {
 			case 'removeMatch':
 				const id = matchId.pop();
 				console.log("Removing match with ID:", id);
-				socket?.send(JSON.stringify({id: ID, type: "removeMatch", matchId: id}));
+				socket?.send(JSON.stringify({id: ID, type: "REMOVE_MATCH", matchId: id}));
 				break;
 		}
 		rl.prompt();
@@ -38,7 +38,7 @@ export function connect() {
 
 	socket.onopen = () => {
 		console.log('Connected to WebSocket server');
-		socket?.send(JSON.stringify({type: "connectLobby", pass: "Azarath Metrion Zinthos", id: ID}));
+		socket?.send(JSON.stringify({type: "CONNECT_LOBBY", pass: "Azarath Metrion Zinthos", id: ID}));
 		prompt();
 	}
 	socket.onmessage = (event) => {

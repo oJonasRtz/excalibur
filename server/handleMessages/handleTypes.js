@@ -1,5 +1,5 @@
-import { lobby, matches, types } from "../server.shared";
-import { handleConnect } from "./handleConnect";
+import { lobby, matches, types } from "../server.shared.js";
+import { handleConnect } from "./handleConnect.js";
 
 const handlers = {
 	[types.recieves.PING]: ({data, match}) =>
@@ -16,6 +16,8 @@ const handlers = {
 		lobby.removeMatch(ws.player.matchIndex),
 	[types.recieves.INPUT]: ({data, match}) =>
 		match.input(data.id, {up: data.up, down: data.down}),
+	[types.recieves.BOUNCE]: ({match, data}) =>
+		match.bounce(data.axis),
 }
 
 function validateData(data, type) {
@@ -34,20 +36,20 @@ export function handleTypes(ws, data) {
 			throw new Error(types.error.TYPE_ERROR);
 
 		const {type, matchId, id} = data;
-		if (!validateData(type, 'string')
-			|| !validateData(matchId, 'number')
-			)
+		if (!validateData(type, 'string'))
 			throw new Error(types.error.TYPE_ERROR);
 
-		const match = matchId
+		const match = validateData(matchId, 'number')
 			? matches[matchId]
 			: null;
 		
 		console.log(`received type: ${type} with:`, {data});
 		//All messages except CONNECT_PLAYER require id
-		const newConnection = type === types.recieves.CONNECT_PLAYER;
-		if (!match || (!newConnection && !validateData(id, 'number')))
-			return;
+		const newConnection = type === types.recieves.CONNECT_PLAYER
+			|| type === types.recieves.CONNECT_LOBBY;
+		//Isso ta travando connectLobby
+		// if (!match || (!newConnection && !validateData(id, 'number')))
+		// 	return;
 
 		const handler = handlers[type];
 		if (!handler) { 

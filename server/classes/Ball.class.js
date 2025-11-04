@@ -1,4 +1,4 @@
-import { INTERVALS, types } from "../server.shared";
+import { INTERVALS, types } from "../server.shared.js";
 
 export class Ball {
 	#direction = {x: 0, y: 0};

@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { Lobby } from './lobby.class.js';
+import { Lobby } from './classes/lobby.class.js';
 
 export const matches = {};
 export const lobby = new Lobby();
@@ -39,6 +39,7 @@ export const types = {
 		CONNECT_LOBBY: "CONNECT_LOBBY",
 		END_GAME: "END_GAME",
 		INPUT: "INPUT",
+		BOUNCE: "BOUNCE",
 	}
 };
 

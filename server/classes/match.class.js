@@ -126,7 +126,6 @@ export class Match {
 
 		// Check if all players are connected to start the game
 		if (Object.values(this.#players).every(p => p.connected)) {
-			const data = {type: types.message.START_GAME};
 			this.#allConnected = true;
 
 			if (!this.#matchStarted) {
@@ -134,11 +133,10 @@ export class Match {
 				this.#gameStarted = true;
 				this.#startTimer();
 			}
-			this.#broadcast(data);
 			this.#ping();
 		}
 
-		this.#broadcast({type: types.message.OPPONENT_CONNECTED, connected: true}, ws);
+		// this.#broadcast({type: types.message.OPPONENT_CONNECTED, connected: true}, ws);
 		return { matchIndex: this.#id, id: slot};
 	}
 	disconnectPlayer(slot) {
@@ -147,7 +145,7 @@ export class Match {
 
 		player.destroy();
 		this.#allConnected = false;
-		this.#broadcast({type: types.message.OPPONENT_DISCONNECTED, connected: false});
+		// this.#broadcast({type: types.message.OPPONENT_DISCONNECTED, connected: false});
 		
 		if (this.#gameStarted && !this.#gameEnded && Object.values(this.#players).every(p => !p.connected))
 			this.#inactivityDisconnect(5);
@@ -166,11 +164,23 @@ export class Match {
 			};
 			return acc;
 			}, {});
+			const ball = this.#ball ?
+			{
+				exists: true,
+				position: {...this.#ball.position},
+			}
+			: {exists: false};
+			const game =
+			{
+				started: this.#gameStarted,
+				ended: this.#gameEnded,
+				time: this.#timeFormated,
+			}
 			const message = {
 				type: types.message.PING,
-				time: this.#timeFormated,
 				players,
-				ballDirection: this.#ball.direction,
+				ball,
+				game,
 			}
 			const change = !this.#lastState || (
 				JSON.stringify(this.#lastState) !== JSON.stringify(message)
@@ -256,9 +266,9 @@ export class Match {
 		console.log(`New ball created for match ${this.#id}`);
 		this.#updateBall({});
 	}
-	ballBounce(data) {
+	bounce(axis) {
 		if (!this.#ball) return;
-		this.#ball.bounce(data.axis);
+		this.#ball.bounce(axis);
 	}
 	#updateBall() {
 		if (!this.#ball) return;
@@ -280,8 +290,6 @@ export class Match {
 	destroy() {
 		if (this.#timeout)
 			clearTimeout(this.#timeout);
-		if (this.#ball) 
-			delete this.#ball;
 		this.#ball = null;
 		this.#timeout = null;
 		this.#stopTimer();

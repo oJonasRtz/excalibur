@@ -27,6 +27,7 @@ export class Player {
 			name: this.#name,
 			score: this.#score,
 			direction: {...this.#direction},
+			connected: this.#connected,
 		}
 	}
 	get connected() {
