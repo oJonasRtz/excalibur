@@ -50,7 +50,7 @@ export function handleTypes(ws, data) {
 			return;
 
 		const handler = handlers[type];
-		if (!handler) {
+		if (!handler) { 
 			console.error(`No handler for message type: ${type}`);
 			return;
 		}
