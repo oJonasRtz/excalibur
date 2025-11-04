@@ -34,7 +34,7 @@ export class Paddle extends ex.Actor {
 	getMoveSpeed(_delta: number): number {
 		const input = movePaddles[this.number];
 
-		const dir = Number(input.down) - Number(input.up);	
+		const dir = Number(input.down) - Number(input.up);
 
 		return((dir * this.speed) * _delta) * Number(gameState.allOk);
 	}

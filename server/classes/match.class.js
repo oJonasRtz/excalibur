@@ -2,10 +2,7 @@ import { createId } from "../creates/createId.js";
 import { Player } from "./player.class.js";
 import { DISCONNECT_TIMEOUT, FPS, lobby, matches, types } from "../server.shared.js";
 import { getTime } from "../utils/getTime.js";
-import { sendMesage } from "../utils/send.js";
 import { Ball } from "./Ball.class.js";
-
-
 
 export class Match {
 	#allConnected = false;
@@ -21,12 +18,6 @@ export class Match {
 	#gameEnded = false;
 	#timeout = null;
 	#timeFormated = "00:00";
-	// #ball = {
-	// 	direction: { x: 0, y: 0 },
-	// 	exists: false,
-	// 	interval: null,
-	// 	lastBounce: null,
-	// };
 	#ball = null;
 	#lastScorer = null; // "left" | "right" | null
 	#lastState = null;
@@ -85,14 +76,14 @@ export class Match {
 	#broadcast(message, wsToSkip = null) {
 		if (!this.#allConnected) return;
 
-			for (const p of Object.values(this.#players))
-				if (p.ws !== wsToSkip) {
-					try {
-						p.send(message);
-					} catch (error) {
-						console.error("Error sending message:", error.message);
-					}
+		for (const p of Object.values(this.#players))
+			if (p.ws !== wsToSkip) {
+				try {
+					p.send(message);
+				} catch (error) {
+					console.error("Error sending message:", error.message);
 				}
+			}
 	}
 	#inactivityDisconnect(minutes = 1) {
 		const timeout = DISCONNECT_TIMEOUT * minutes;
@@ -250,102 +241,38 @@ export class Match {
 			console.log("Error handling input:", error.message);
 		}
 	}
-	#getRandom() {
-		return (Math.random() < 0.5 ? -1 : 1);
-	}
 	newBall() {
-	// 	const now = Date.now();
-	// 	const timeToStart = now + INTERVALS;
-		
-	// 	this.#ball.exists = true;
-	// 	if (!this.#lastScorer) {
-	// 		this.#ball.direction.x = this.#getRandom();
-	// 		this.#ball.direction.y = this.#getRandom();
-	// 	} else {
-	// 		this.#ball.direction.x = this.#lastScorer === "left" ? -1 : 1;
-	// 		this.#ball.direction.y = this.#getRandom();
-	// 	}
-
-	// 	console.log(`New ball created for match ${this.#id}`);
-
-	// 	this.#broadcast({type: types.message.NEW_BALL, direction: this.#ball.direction, startTime: timeToStart});
-
 		this.#ball = new Ball(this.#lastScorer);
 		console.log(`New ball created for match ${this.#id}`);
+		this.#updateBall({});
 	}
 	ballBounce(data) {
-		// if (!this.#ball.exists) return;
-
-		// if (!this.#ball.lastBounce)
-		// 	this.#ball.lastBounce = {axis: data.axis, time: Date.now() - DELAY};
-
-		// const DELAY = 100; //delay to ignore multiple bounces
-		// const now = Date.now();
-		// const sameAxis = this.#ball.lastBounce.axis === data.axis;
-		// const tooSoon = now - this.#ball.lastBounce.time < DELAY;
-
-		// if (sameAxis && tooSoon) return;
-
-		// this.#ball.lastBounce = {axis: data.axis, time: now};
-
-		// if (data.axis === 'x')
-		// 	this.#ball.direction.x = -this.#ball.direction.x;
-		// if (data.axis === 'y')
-		// 	this.#ball.direction.y = -this.#ball.direction.y;
-
-		// this.#broadcast({type: types.message.BOUNCE, direction: this.#ball.direction});
-		// console.log(`[${this.#id}] Ball bounced on ${data.axis}-axis`);
 		if (!this.#ball) return;
 		this.#ball.bounce(data.axis);
 	}
-	updateBall(data) {
-		// player.notifyBallDeath = true;
-		// if (!Object.keys(this.#players).every(p => this.#players[p].notifyBallDeath)) return;
-
-		// // Reset notifyBallDeath for all players
-		// Object.keys(this.#players).forEach(p => {
-		// 	this.#players[p].notifyBallDeath = false;
-		// });
-
-		// // this.#ball.exists = false;
-		// this.#lastScorer = scorerSide;
-		// Object.keys(this.#players).forEach((key) => {
-		// 	const p = this.#players[key];
-
-		// 	if (p.side === scorerSide && p.score < this.#maxScore)
-		// 		p.score++;
-
-		// 	if (p.score >= this.#maxScore)
-		// 		this.endGame(p.name);
-		// });
-
-		// console.log(`Ball death handled for match ${this.#id}`);
-		// console.log(`Score update: Left Player - ${this.#players[1].score}, Right Player - ${this.#players[2].score}`);
+	#updateBall() {
 		if (!this.#ball) return;
 
-		const scorer = this.#ball.updatePosition(data.position, data.direction, data.mapWidth);
+		this.#ball.updateState((scorer) => {
+			this.#lastScorer = scorer;
+			Object.values(this.#players).forEach((p) => {
+				if (p.side === scorer && p.score < this.#maxScore)
+					p.score++;
 
-		if (!scorer) return;
+				if (p.score >= this.#maxScore)
+					this.endGame(p.name);
+			});
 
-		this.#lastScorer = scorer;
-		Object.values(this.#players).forEach((p) => {
-			if (p.side === scorer && p.score < this.#maxScore)
-				p.score++;
-
-			if (p.score >= this.#maxScore)
-				this.endGame(p.name);
-
-			delete this.#ball;
-			this.#ball = null;
-			this.newBall();
+			console.log(`Ball scored for match ${this.#id}`);
 		});
-
-		console.log(`Ball updated for match ${this.#id}`);
 	}
 	// --- Cleanup ---
 	destroy() {
 		if (this.#timeout)
 			clearTimeout(this.#timeout);
+		if (this.#ball) 
+			delete this.#ball;
+		this.#ball = null;
 		this.#timeout = null;
 		this.#stopTimer();
 		this.#stopPing();

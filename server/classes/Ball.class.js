@@ -5,8 +5,11 @@ export class Ball {
 	#position = {x: 0, y: 0};
 	#speed = .3;
 	#lastBounce = null;
-	#startTime = null;
 	#DELAY = 100;
+	#interval = null;
+	#start = false;
+	#networkBuffer = INTERVALS / FPS;
+	#map = {width: 800, height: 600};
 
 	constructor(lastScorer) {
 		const dir = {"left": -1, "right": 1};
@@ -19,24 +22,29 @@ export class Ball {
 		};
 
 		this.#direction = vector;
-		this.#startTime = Date.now() + INTERVALS + (INTERVALS / FPS);
+		const startTime = INTERVALS + this.#networkBuffer; //1sec + message letency buffer
+
+		setTimeout(() => {
+			this.#start = true;
+		}, startTime);
 	}
-	get direction() {
-		return {...this.#direction};
+
+	get position() {
+		return {
+			position: {...this.#position}
+		};
 	}
-	get startTime() {
-		return this.#startTime;
-	}
+
 	#getRandom() {
 		return (Math.random() < 0.5 ? -1 : 1);
 	}
 
-	updatePosition(mapWidth) {
+	#updatePosition() {
 		
 		this.#position.x += this.#direction.x * this.#speed
 		this.#position.y += this.#direction.y * this.#speed;
 
-		const i = (this.#position.x <= 0) - (this.#position.x >= mapWidth);
+		const i = (this.#position.x <= 0) - (this.#position.x >= this.#map.width);
 		const scorer = {
 			0: null,
 			1: "right",
@@ -44,6 +52,21 @@ export class Ball {
 		};
 
 		return scorer[i];
+	}
+
+	updateState(onScore) {
+		if (!this.#start || this.#interval) return;
+
+		this.#interval = setInterval(() => {
+			const scorer = this.#updatePosition();
+			if (this.#position.y <= 0 || this.#position.y >= this.#map.height)
+				this.bounce('y');
+			if (scorer) {
+				clearInterval(this.#interval);
+				this.#interval = null;
+				onScore(scorer);
+			}
+		}, this.#networkBuffer);
 	}
 
 	bounce(axis) {

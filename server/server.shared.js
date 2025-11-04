@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import { Lobby } from './lobby.class.js';
-import { PERMISSION_ERROR } from './classes/lobby.class.js';
 
 export const matches = {};
 export const lobby = new Lobby();

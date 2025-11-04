@@ -10,7 +10,6 @@ export class Player {
 	#ws = null;
 	#notifyBallDeath = false;
 	#side;
-	#pingInterval = null;
 	#direction = {up: false, down: false};
 	#matchId = 0;
 
@@ -60,26 +59,6 @@ export class Player {
 		}
 		this.#ws = ws;
 		this.#connected = true;
-	}
-	// ping(message) {
-	// 	if (this.#pingInterval)
-	// 		clearInterval(this.#pingInterval);
-	// 	this.#pingInterval = setInterval(() => {
-	// 		if (this.#ws && this.#ws.readyState === 1)
-	// 			this.send({...message});
-	// 	}, this.#tick);
-	// }
-	// pong(data) {
-	// 	if (!data.change) return;
-
-	// 	this.#direction = data.direction;
-	// 	this.#notifyBallDeath = data.notifyBallDeath; 
-	// 	this.#notifyEnd = data.notifyEnd;
-	// }
-	stopPing() {
-		if (this.#pingInterval)
-			clearInterval(this.#pingInterval);
-		this.#pingInterval = null;
 	}
 	send(message) {
 		if (!this.#connected || !this.#ws || this.#ws.readyState !== 1)
