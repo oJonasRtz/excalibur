@@ -5,7 +5,7 @@ import { socket } from "./connect";
 export const keys: InputType = {
 	id: 0,
 	matchId: identity.matchId,
-	type: "input",
+	type: "INPUT",
 	up: false,
 	down: false
 };

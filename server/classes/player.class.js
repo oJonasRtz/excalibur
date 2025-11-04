@@ -44,6 +44,10 @@ export class Player {
 	get slot() {
 		return this.#slot;
 	}
+	// --- Player Methods ---
+	checkWs(ws) {
+		return this.#ws === ws;
+	}
 
 	connect(ws, id, name) {
 		if (id !== this.#id || name !== this.#name) 
@@ -61,9 +65,19 @@ export class Player {
 		this.#connected = true;
 	}
 	send(message) {
-		if (!this.#connected || !this.#ws || this.#ws.readyState !== 1)
-			throw new Error(types.error.NOT_CONNECTED);
-		this.#ws.send(JSON.stringify({...message, timestamp: Date.now()}));
+		try {
+			if (!this.#connected || !this.#ws || this.#ws.readyState !== 1)
+				throw new Error(types.error.NOT_CONNECTED);
+			this.#ws.send(JSON.stringify({...message, timestamp: Date.now()}));
+		} catch (error) {
+			console.error("Error sending message:", error.message);
+		}
+	}
+	updateDirection(direction) {
+		if (!this.#connected
+			|| Object.values(direction).some(v => typeof v !== 'boolean')) return;
+		
+		this.#direction = {...direction};
 	}
 	destroy() {
 		this.#ws.close();

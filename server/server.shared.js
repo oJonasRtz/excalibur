@@ -38,6 +38,7 @@ export const types = {
 		PING: "PING",
 		CONNECT_LOBBY: "CONNECT_LOBBY",
 		END_GAME: "END_GAME",
+		INPUT: "INPUT",
 	}
 };
 

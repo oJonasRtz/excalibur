@@ -34,3 +34,9 @@ export function handleType(data: any) {
 	gameState.latency = Date.now() - data.timestamp;
 	func(data);
 }
+
+//keep
+	endGame
+	startGame
+	opponentConnection
+	Ping

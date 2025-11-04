@@ -1,4 +1,4 @@
-import type { GameType, IdentityType, Vector } from "./types";
+import type { GameState, GameType, IdentityType, Vector } from "./types";
 import * as ex from "excalibur";
 
 export const score: Record<number, {name: string, score: number}> = {};
@@ -48,5 +48,24 @@ export const BACKGROUND =  Object.freeze({
 export const ballPos: Vector = {
 	x: 0,
 	y: 0,
-	startTime: 0,
+}
+
+export const state: GameState = {
+	ballPos: {
+		vector: {x: 0, y: 0},
+		exist: false,
+	},
+	timer: "00:00",
+	players: {
+		1: {name: "", up: false, down: false, score: 0},
+		2: {name: "", up: false, down: false, score: 0},
+	},
+	latency: 0,
+	gameStarted: false,
+	gameEnd: false,
+	connection: {
+		me: false,
+		opponent: false,
+	},
+	allOk: false,
 }

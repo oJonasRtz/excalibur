@@ -1,5 +1,5 @@
 import * as ex from 'excalibur';
-import { gameState, score } from '../../../globals';
+import { score, state } from '../../../globals';
 import { MidleLine } from '../../../utils/midleLine';
 import { addElements } from './addElements';
 import { BACKGROUND } from '../../../globals';
@@ -41,7 +41,7 @@ export function drawUi() {
 		textAlign: ex.TextAlign.Center
 	});
 
-	this.game.timeLabel = createLabel(gameState.timer, timerFont, this.game.engine.drawWidth / 2, TEXT_Y + this.game.font.size + 10);
+	this.game.timeLabel = createLabel(state.timer, timerFont, this.game.engine.drawWidth / 2, TEXT_Y + this.game.font.size + 10);
 	this.game.scoreLabel = createLabel(`${score[1]?.name} - ${score[2]?.name}`, this.game.font, this.game.engine.drawWidth / 2, TEXT_Y);
 	this.height = this.game.timeLabel.pos.y + timerFont.size + 10;
 
@@ -54,7 +54,7 @@ export function drawUi() {
 }
   
 export function countTime() {
-	if (!gameState.allOk) return;
+	if (!state.allOk) return;
 
-	this.game.timeLabel.text = gameState.timer;
+	this.game.timeLabel.text = state.timer;
 }

@@ -1,12 +1,12 @@
-import { gameState } from "../../globals";
+import { state } from "../../globals";
 import { Ball } from "../actors/ball";
 
 export function ballReset() {
-	if (gameState.ballInGame || gameState.gameEnd) return;
+	if (state.ballPos.exist || state.gameEnd) return;
 	
 	const ball = new Ball(this.game.engine.drawWidth / 2, this.game.engine.drawHeight / 2, this.height);
-	gameState.ballInGame = true;
-	gameState.gameStarted = true;
+	state.ballPos.exist = true;
+	state.gameStarted = true;
 
 	this.game.engine.add(ball);
 }

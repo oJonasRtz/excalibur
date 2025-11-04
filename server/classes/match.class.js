@@ -23,15 +23,14 @@ export class Match {
 	#lastState = null;
 	#pingInterval = null;
 
-	constructor (data, index) {
+	constructor ({players, maxPlayers}, index) {
 		try {
-			if (!data.players[1] || !data.players[2]) {
+			if (!players || Object.keys(players).length < 2)
 				throw new Error(types.error.PLAYER_MISSING);
-			}
-			this.#id = createId(data.players[1].id, data.players[2].id);
-			this.#maxPlayers = data?.maxPlayers || this.#maxPlayers;
-			this.#maxScore = data?.maxScore || this.#maxScore;
-			Object.values(data.players).forEach((p, i) => {
+
+			this.#id = createId(players[1].id, players[2].id);
+			this.#maxPlayers = maxPlayers || this.#maxPlayers;
+			Object.values(players).forEach((p, i) => {
 				const index = i + 1;
 				this.#players[index] = new Player(p, index);
 			});
@@ -77,12 +76,8 @@ export class Match {
 		if (!this.#allConnected) return;
 
 		for (const p of Object.values(this.#players))
-			if (p.ws !== wsToSkip) {
-				try {
-					p.send(message);
-				} catch (error) {
-					console.error("Error sending message:", error.message);
-				}
+			if (!p.checkWs(wsToSkip)) {
+				p.send(message);
 			}
 	}
 	#inactivityDisconnect(minutes = 1) {
@@ -183,13 +178,11 @@ export class Match {
 			this.#pingInterval = null;
 		}
 	}
-	pong(data) {
-		try {
-			const p = this.#players[data.id];
+	pong(id) {
+		const p = this.#players[id];
+
+		if (p)
 			p.send({type: "PONG"})
-		} catch (error) {
-			console.error("Error sending PONG:", error.message);
-		}
 	}
 
 	// --- Manage Game State ---
@@ -231,12 +224,20 @@ export class Match {
 		this.#broadcast({type: types.message.END_GAME});
 	}
 	input(id, direction) {
+		// try {
+		// 	const p = this.#players[id];
+		// 	if (!p) return;
+
+		// 	p.direction.up = direction.up;
+		// 	p.direction.down = direction.down;
+		// } catch (error) {
+		// 	console.log("Error handling input:", error.message);
+		// }
 		try {
 			const p = this.#players[id];
-			if (!p) return;
 
-			p.direction.up = direction.up;
-			p.direction.down = direction.down;
+			if (!p) return;
+			p.updateDirection(direction);
 		} catch (error) {
 			console.log("Error handling input:", error.message);
 		}

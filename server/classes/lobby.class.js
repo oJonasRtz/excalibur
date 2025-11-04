@@ -24,14 +24,14 @@ export class Lobby {
 		sendError(ws, message);
 		ws.close(closeCodes.POLICY_VIOLATION, message);
 	}
-	connect(data, ws) {
+	connect({pass, id}, ws) {
 		try {
 			if (this.#connected) {
 				this.#connectionError(ws, types.error.PERMISSION_ERROR);
 				return;
 			}
 
-			if (data.pass !== this.#pass || data.id !== this.#id) {
+			if (pass !== this.#pass || id !== this.#id) {
 				this.#connectionError(ws, types.error.PERMISSION_ERROR);
 				return;
 			}
@@ -77,6 +77,9 @@ export class Lobby {
 	// --- Match Management ---
 	createMatch(data, ws) {
 		try {
+			if (typeof data.players !== 'object'
+				|| typeof data.maxPlayers !== 'number')
+				throw new Error(types.error.TYPE_ERROR);
 			if (!this.checkPermissions(ws))
 				throw new Error(types.error.PERMISSION_ERROR);
 
