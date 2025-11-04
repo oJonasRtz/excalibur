@@ -36,7 +36,7 @@ export function handleType(data: any) {
 }
 
 //keep
-	endGame
-	startGame
-	opponentConnection
-	Ping
+	// endGame
+	// startGame
+	// opponentConnection
+	// Ping

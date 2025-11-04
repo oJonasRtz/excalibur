@@ -15,7 +15,7 @@ function closeConnection(ws, message, condition) {
 	}
 }
 
-export function addClient(ws, {matchId, playerId, name, match}) {
+export function addClient(ws, {playerId, name, match}) {
 	closeConnection(ws, errorMessages.NOTFOUND, !match);
 
 	try {

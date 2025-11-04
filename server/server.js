@@ -15,9 +15,14 @@ const HOST = process.env.HOST || 'localhost';
 // 	cert: fs.readFileSync('./ssl/server.cert')
 // });
 const wss = new WebSocketServer({ port: PORT });
+const connectionsPerIp = new Map();
 
 wss.on("connection", (ws) => {
 	ws.player = null;
+	const ip = ws._socket.remoteAddress;
+	const count = connectionsPerIp.get(ip) || 0;
+	if (count >= 10)
+		return;
 	ws.on("message", (message) => {
 		const data = JSON.parse(message);
 
@@ -38,7 +43,7 @@ wss.on("connection", (ws) => {
 
 		if (!matches) return;
 		try {
-			const match = matches[ws.player?.matchIndex] || Object.values(matches).find(m => m && Object.values(m.players).some(p => p.ws === ws));
+			const match = matches[ws.player?.matchIndex];
 			if (match)
 				match.disconnectPlayer(ws.player?.slot);
 			ws.player = null;

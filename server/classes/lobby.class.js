@@ -12,8 +12,7 @@ export class Lobby {
 	//Pending messages to be sent when lobby connects
 	#sendQueue = {messages: [], max: 50};
 	#retryInterval = null;
-	#index = 0;
-	#freeIndexes = [];
+
 1
 	constructor() {
 		this.#retryInterval = setInterval(() => {
@@ -83,10 +82,8 @@ export class Lobby {
 			if (!this.checkPermissions(ws))
 				throw new Error(types.error.PERMISSION_ERROR);
 
-			const i = this.#freeIndexes.length ? this.#freeIndexes.pop() : this.#index++;
-
-			const newMatch = new Match(data, i);
-			matches[i] = newMatch;
+			const newMatch = new Match(data);
+			matches[newMatch.id] = newMatch;
 			this.send({type: types.message.MATCH_CREATED, matchId: newMatch.id});
 		} catch (error) {
 			console.error("Error creating match:", error.message);
@@ -103,11 +100,9 @@ export class Lobby {
 
 		match.destroy();
 
-		if (!this.#freeIndexes.includes(Number(index)))
-			this.#freeIndexes.push(Number(index));
 		console.log(`Match ${index} removed`);
 		console.log(`got matches: ${Object.keys(matches)}`);
-		lobby.send({type: types.message.MATCH_REMOVED, matchId: match.id});
+		lobby.send({type: types.message.MATCH_REMOVED, matchId: index});
 	}
 	#sendPending() {
 		if (!this.#sendQueue.messages.length || !this.#connected || !this.#ws || this.#ws.readyState !== 1) return;

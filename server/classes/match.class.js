@@ -1,14 +1,12 @@
 import { createId } from "../creates/createId.js";
 import { Player } from "./player.class.js";
 import { DISCONNECT_TIMEOUT, FPS, lobby, matches, types } from "../server.shared.js";
-import { getTime } from "../utils/getTime.js";
 import { Ball } from "./Ball.class.js";
 
 export class Match {
 	#allConnected = false;
 	#players = {};
 	#id = 0;
-	#index = -1;
 	#matchStarted = null;
 	#gameStarted = false;
 	#matchDuration = 0;
@@ -23,7 +21,7 @@ export class Match {
 	#lastState = null;
 	#pingInterval = null;
 
-	constructor ({players, maxPlayers}, index) {
+	constructor ({players, maxPlayers}) {
 		try {
 			if (!players || Object.keys(players).length < 2)
 				throw new Error(types.error.PLAYER_MISSING);
@@ -34,7 +32,6 @@ export class Match {
 				const index = i + 1;
 				this.#players[index] = new Player(p, index);
 			});
-			this.#index = index;
 
 			console.log(`New match created with ID: ${this.#id}`);
 			this.#inactivityDisconnect(5);
@@ -48,18 +45,30 @@ export class Match {
 	get id() {
 		return this.#id;
 	}
-	get index() {
-		return this.#index;
-	}
 	// --- Match Timer Methods ---
+	#getTime(timestamp, flag = false) {
+		const date = new Date(timestamp);
+
+		const hour = String(date.getHours()).padStart(2, '0');
+		const minute = String(date.getMinutes()).padStart(2, '0');
+		const second = String(date.getSeconds()).padStart(2, '0');
+
+		//Flag just returns time components without date
+		if (flag) return {hour, minute, second};
+
+		const day = String(date.getDate()).padStart(2, '0');
+		const month = String(date.getMonth() + 1).padStart(2, '0');
+		const year = date.getFullYear();
+
+		return {day, month, year, hour, minute, second};
+	}
 	#startTimer() {
 		if (!this.#matchStarted || this.#timer) return;
 
 		this.#timer = setInterval(() => {
 			this.#matchDuration = Date.now() - this.#matchStarted;
 
-			const minute = Math.floor(this.#matchDuration / 60000);
-			const second = Math.floor((this.#matchDuration % 60000) / INTERVALS);
+			const {minute, second} = this.#getTime(this.#matchDuration, true);
 			const formatted = `${minute}:${second.toString().padStart(2, '0')}`;
 
 			this.#timeFormated = formatted;
@@ -86,7 +95,7 @@ export class Match {
 		if (!this.#timeout) {
 			this.#timeout = setTimeout(() => {
 				console.log(`Match ${this.#id} removed due to inactivity`);
-				lobby.removeMatch(this.#index, true);
+				lobby.removeMatch(this.#id, true);
 				lobby.send({type: types.message.TIMEOUT_REMOVE, matchId: this.#id});
 			}, timeout);
 		}
@@ -130,7 +139,7 @@ export class Match {
 		}
 
 		this.#broadcast({type: types.message.OPPONENT_CONNECTED, connected: true}, ws);
-		return { matchIndex: this.#index, id: slot};
+		return { matchIndex: this.#id, id: slot};
 	}
 	disconnectPlayer(slot) {
 		const player = this.#players[slot];
@@ -212,7 +221,7 @@ export class Match {
 			time: {
 				duration: this.#timeFormated,
 				startedAt: (() => {
-					const time = getTime(this.#matchStarted);
+					const time = this.#getTime(this.#matchStarted);
 					return `${time.day}/${time.month}/${time.year} | ${time.hour}:${time.minute}:${time.second}`;
 				})(),
 			}
@@ -282,6 +291,6 @@ export class Match {
 				p.ws.close(1000, "Match ended");
 		});
 
-		delete matches[this.#index];
+		delete matches[this.#id];
 	}
 }
