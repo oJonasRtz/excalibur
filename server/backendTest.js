@@ -4,6 +4,11 @@ export let socket = null;
 const ID = 4002;
 let matchId = [];
 
+function remove(id) {
+	console.log("Removing match with ID:", id);
+	socket?.send(JSON.stringify({id: ID, type: "REMOVE_MATCH", matchId: id}));
+}
+
 function prompt() {
 	const rl = readline.createInterface({
 		input: process.stdin,
@@ -23,8 +28,7 @@ function prompt() {
 				break;
 			case 'removeMatch':
 				const id = matchId.pop();
-				console.log("Removing match with ID:", id);
-				socket?.send(JSON.stringify({id: ID, type: "REMOVE_MATCH", matchId: id}));
+				remove(id);
 				break;
 		}
 		rl.prompt();
@@ -49,6 +53,8 @@ export function connect() {
 		console.log('Message from server:', {data});
 		if (data.type === "MATCH_CREATED")
 			matchId.push(data.matchId);
+		else if (data.type === "DUPLICATE")
+			remove(data.matchId);
 
 	}
 
