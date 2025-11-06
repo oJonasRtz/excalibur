@@ -1,6 +1,7 @@
 import { Match } from "./match.class.js";
 import { closeCodes, lobby, matches, types } from "../server.shared.js"
 import { sendError } from "../utils/sendError.js";
+import { showMatches } from "../utils/showMatches.log.js";
 
 const SECOND = 1000;
 
@@ -23,7 +24,7 @@ export class Lobby {
 		sendError(ws, message);
 		ws.close(closeCodes.POLICY_VIOLATION, message);
 	}
-	connect({pass, id}, ws) {
+	connect({pass, id, ws}) {
 		try {
 			if (this.#connected) {
 				this.#connectionError(ws, types.error.PERMISSION_ERROR);
@@ -85,13 +86,14 @@ export class Lobby {
 			const newMatch = new Match(data);
 			matches[newMatch.id] = newMatch;
 			this.send({type: types.message.MATCH_CREATED, matchId: newMatch.id});
+			showMatches();
 		} catch (error) {
 			console.error("Error creating match:", error.message);
 			this.send({type: types.message.ERROR, error: error.message});
 		}
 	}
 	//Fazer tratamento para o force = pedir credenciais
-	removeMatch(index, force = false) {
+	removeMatch(index, force = false, timeout = false) {
 		const match = matches[index];
 		const stop = !match
 					|| (!force && Object.values(match.players).every(p => !p.notifyEnd) && !match.gameEnded);
@@ -102,11 +104,21 @@ export class Lobby {
 
 		console.log(`Match ${index} removed`);
 		console.log(`got matches: ${Object.keys(matches)}`);
-		lobby.send({type: types.message.MATCH_REMOVED, matchId: index});
+		if (!timeout)
+			lobby.send({type: types.message.MATCH_REMOVED, matchId: index});
+		showMatches();
 	}
 	#sendPending() {
-		if (!this.#sendQueue.messages.length || !this.#connected || !this.#ws || this.#ws.readyState !== 1) return;
+		console.log(("trying to send pending messages"));
+		console.log(`${JSON.stringify({
+			length: !this.#sendQueue.messages.length,
+			connected: !this.#connected,
+			ws: !this.#ws,
+			ready: this.#ws?.readyState !== 1,
+		})}`);
+		if (!this.#sendQueue.messages.length || !this.#connected || !this.#ws || this.#ws?.readyState !== 1) return;
 
+		console.log("im gonna send pending messages");
 		while (this.#sendQueue.messages.length) {
 			const data = this.#sendQueue.messages[0];
 			try {

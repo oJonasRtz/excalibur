@@ -26,7 +26,7 @@ wss.on("connection", (ws) => {
 	ws.on("message", (message) => {
 		const data = JSON.parse(message);
 
-		handleTypes(ws.player, data, ws);
+		handleTypes(ws, data);
 	})
 
 	ws.on("error", (error) => {

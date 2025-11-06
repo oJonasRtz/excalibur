@@ -7,11 +7,11 @@ const handlers = {
 	[types.recieves.NEW_MATCH]: ({data, ws}) =>
 		lobby.createMatch({players: data.players, maxPlayers: data.maxPlayers}, ws),
 	[types.recieves.REMOVE_MATCH]: ({match}) =>
-		lobby.removeMatch(match.index, true),
+		lobby.removeMatch(match.id, true),
 	[types.recieves.CONNECT_PLAYER]: ({ws, data, match}) =>
 		handleConnect(ws, {playerId: data.playerId, name: data.name, match}),
 	[types.recieves.CONNECT_LOBBY]: ({ws, data}) =>
-		lobby.connect({pass: data.pass, id: data.id}, ws),
+		lobby.connect({pass: data.pass, id: data.id, ws}),
 	[types.recieves.END_GAME]: ({ws}) =>
 		lobby.removeMatch(ws.player.matchIndex),
 	[types.recieves.INPUT]: ({data, match}) =>

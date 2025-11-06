@@ -17,7 +17,9 @@ function prompt() {
 				socket?.send(JSON.stringify({id: ID, type: "NEW_MATCH", players: {
 					1: {name: "Raltz", id: 4002},
 					2: {name: "Kirlia", id: 8922}
-				}}));
+					},
+					maxPlayers: 2
+				}));
 				break;
 			case 'removeMatch':
 				const id = matchId.pop();

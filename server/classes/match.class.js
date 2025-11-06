@@ -95,7 +95,7 @@ export class Match {
 		if (!this.#timeout) {
 			this.#timeout = setTimeout(() => {
 				console.log(`Match ${this.#id} removed due to inactivity`);
-				lobby.removeMatch(this.#id, true);
+				lobby.removeMatch(this.#id, true, true);
 				lobby.send({type: types.message.TIMEOUT_REMOVE, matchId: this.#id});
 			}, timeout);
 		}
