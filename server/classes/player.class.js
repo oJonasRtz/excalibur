@@ -13,12 +13,12 @@ export class Player {
 	#direction = {up: false, down: false};
 	#matchId = 0;
 
-	constructor(data, index) {
+	constructor(data, {index, matchId}) {
 		const side = ((index + 1) % 2 === 0) ? "left" : "right";
 		this.#id = data.id;
 		this.#name = data.name;
 		this.#side = side;
-		this.#matchId = data.matchId;
+		this.#matchId = matchId;
 		this.#slot = index;
 	}
 	get info() {

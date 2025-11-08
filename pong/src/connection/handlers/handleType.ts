@@ -1,27 +1,23 @@
 import { gameState, identity, state } from "../../globals";
 import { calculateLatency } from "../utils/getLatency";
-import { handleBounce } from "./handleBounce";
-import { handleConnectPlayer } from "./handleConnectPlayer";
-import { handleEndGame } from "./handleEndGame";
-import { handleInput } from "./handleInput";
-import { handleNewBall } from "./handleNewBall";
-import { handleOpponentConnection } from "./handleOpponentConnection";
-import { handleStart } from "./handleStart";
-import { handleTimer } from "./handleTimer";
-import { handleUpdateStats } from "./handleUpdateStats";
-import { updateState } from "./updateState";
 
 type Handler = (data: any) => void;
 
 const map: Record<string, Handler> = {
-	// PLAYER_CONNECTED: handleConnectPlayer,
-	// START_GAME: handleStart,
-	// OPPONENT_CONNECTION: handleOpponentConnection,
-	// END_GAME: handleEndGame,
 	PING: updateState,
 	PONG: () => {
 		gameState.latency = calculateLatency();
 		console.log(`Latency: ${gameState.latency} ms`);
+	},
+	PLAYER_CONNECTED: (data) => {
+		const {id} = data;
+
+		if (!id) {
+			console.error("[PLAYER_CONNECTED] No id provided in data:", data);
+			return;
+		}
+		identity.id = id;
+		console.log(`[PLAYER_CONNECTED] Player connected with id: ${id}`);
 	}
 }
 

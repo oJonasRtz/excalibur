@@ -1,4 +1,4 @@
-import { BACKGROUND, gameState, MAXSCORE, score, state } from '../globals';
+import { BACKGROUND, MAXSCORE, score, state } from '../globals';
 import { MyLabel } from '../utils/myLabel';
 import * as ex from 'excalibur';
 import { Paddle } from './actors/paddle';
@@ -8,7 +8,6 @@ import { countTime, drawUi } from './utils/ui/drawUi';
 import { ballReset } from './utils/ballReset';
 import { disconnected } from './utils/disconnected';
 import { endMatch } from './utils/endMatch';
-import { stat } from 'fs';
 
 const FPS: number = 60;
 

@@ -7,11 +7,11 @@ export let socket: WebSocket | null = null;
 
 export function connectPlayer(): void {
 	const serverIp = "localhost";
-	socket = new WebSocket(`ws://${serverIp}:8443`);
+	socket = new WebSocket(`wss://${serverIp}:8443`);
 
 	socket.onopen = () => {
 		console.log('Connected to WebSocket server');
-		socket?.send(JSON.stringify({type: "connectPlayer", matchId: identity.matchId, name: identity.name, id: identity.id, playerId: identity.playerId}));
+		socket?.send(JSON.stringify({type: "CONNECT_PLAYER", matchId: identity.matchId, name: identity.name, id: identity.id, playerId: identity.playerId}));
 		gameState.connected = true;
 		getLatency();
 	}

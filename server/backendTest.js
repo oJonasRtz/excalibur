@@ -1,5 +1,7 @@
 import readline from 'readline';
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 export let socket = null;
 const ID = 4002;
 let matchId = [];
@@ -40,7 +42,7 @@ function prompt() {
 
 export function connect() {
 	const serverIp = "localhost";
-	socket = new WebSocket(`ws://${serverIp}:8443`);
+	socket = new WebSocket(`wss://${serverIp}:8443`);
 
 	socket.onopen = () => {
 		console.log('Connected to WebSocket server');
@@ -53,9 +55,12 @@ export function connect() {
 		console.log('Message from server:', {data});
 		if (data.type === "MATCH_CREATED")
 			matchId.push(data.matchId);
-		else if (data.type === "DUPLICATE")
-			remove(data.matchId);
-
+		if (data.type === "ERROR")
+			switch(data.error) {
+				case "DUPLICATE":
+					remove(data.matchId);
+					break;
+			}
 	}
 
 	socket.onerror = (error) => {

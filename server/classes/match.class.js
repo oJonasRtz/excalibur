@@ -30,7 +30,7 @@ export class Match {
 			this.#maxPlayers = maxPlayers || this.#maxPlayers;
 			Object.values(players).forEach((p, i) => {
 				const index = i + 1;
-				this.#players[index] = new Player(p, index);
+				this.#players[index] = new Player(p,{index, matchId: this.#id} );
 			});
 
 			console.log(`New match created with ID: ${this.#id}`);
@@ -107,7 +107,7 @@ export class Match {
 		for (const [key, p] of Object.entries(this.#players)) {
 			try {
 				p.connect(ws, playerId, name);
-				p.send({type: types.message.CONNECT_PLAYER, id: key, matchId: this.#id, side: Math.random()});
+				p.send({type: types.message.CONNECT_PLAYER, id: key, matchId: this.#id});
 				console.log(`Player ${key} connected to match ${this.#id}`);
 				slot = key;
 				break;

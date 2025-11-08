@@ -4,25 +4,27 @@ import https from "https";
 import { lobby, matches } from "./server.shared.js";
 import { handleTypes } from "./handleMessages/handleTypes.js";
 import 'dotenv/config';
+import { ddosDetect, removeConnection } from "./utils/ddosDetector.js";
 
 
 //port 8443 for tests with wss, change to 443  for production
 //.env nao esta funcionando ainda verificar futuramente
 const PORT = process.env.PORT || 8443;
 const HOST = process.env.HOST || 'localhost';
-// const server = https.createServer({
-// 	key: fs.readFileSync('./ssl/server.key'),
-// 	cert: fs.readFileSync('./ssl/server.cert')
-// });
-const wss = new WebSocketServer({ port: PORT });
-const connectionsPerIp = new Map();
+const server = https.createServer({
+	key: fs.readFileSync('./ssl/server.key'),
+	cert: fs.readFileSync('./ssl/server.cert')
+});
+const wss = new WebSocketServer({ server });
+
 
 wss.on("connection", (ws) => {
 	ws.player = null;
 	const ip = ws._socket.remoteAddress;
-	const count = connectionsPerIp.get(ip) || 0;
-	if (count >= 10)
+	if (ddosDetect(ip)) {
+		ws.close();
 		return;
+	}
 	ws.on("message", (message) => {
 		const data = JSON.parse(message);
 
@@ -34,6 +36,9 @@ wss.on("connection", (ws) => {
 	});
 
 	ws.on("close", () => {
+		const ip = ws._socket.remoteAddress;
+		removeConnection(ip);
+
 		if (lobby.isConnected(ws)) {
 			lobby.disconnect();
 			return;
@@ -54,7 +59,7 @@ wss.on("connection", (ws) => {
 	});
 });
 
-// server.listen(PORT, () => {
-// 	console.log(`WebSocket server is running on wss://${HOST}:${PORT}`);
-// 	console.log(`got matches: ${Object.keys(matches)}`);
-// });
+server.listen(PORT, () => {
+	console.log(`WebSocket server is running on wss://${HOST}:${PORT}`);
+	console.log(`got matches: ${Object.keys(matches)}`);
+});
